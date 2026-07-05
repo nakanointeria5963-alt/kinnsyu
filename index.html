@@ -69,6 +69,27 @@
         <p id="quote" class="quote"></p>
       </div>
 
+      <div class="card fortune-card" id="fortuneCard">
+        <div class="fortune-head">
+          <span class="fortune-title">🔮 今日のタロット</span>
+          <span class="fortune-date" id="fortuneDate"></span>
+        </div>
+        <div class="fortune-body">
+          <div class="tarot" id="tarotVisual">
+            <span class="tarot-emoji" id="tarotEmoji"></span>
+            <span class="tarot-num" id="tarotNum"></span>
+          </div>
+          <div class="fortune-info">
+            <div class="fortune-name" id="fortuneName"></div>
+            <div class="fortune-stars" id="fortuneStars"></div>
+            <div class="fortune-meaning" id="fortuneMeaning"></div>
+          </div>
+        </div>
+        <p class="fortune-advice" id="fortuneAdvice"></p>
+        <div class="fortune-lucky" id="fortuneLucky"></div>
+        <p class="fortune-note">※ 占いは気分を上げるお楽しみ要素です</p>
+      </div>
+
       <div class="card next-badge-card" id="nextBadgeCard"></div>
 
       <div class="action-row">
@@ -144,6 +165,10 @@
       <input type="date" id="startDate" />
     </label>
     <label class="field">
+      <span>生年月日（今日の占いに使用）</span>
+      <input type="date" id="birthDate" />
+    </label>
+    <label class="field">
       <span>1日あたりの平均飲酒量（杯）</span>
       <input type="number" id="drinksPerDay" min="0" step="0.5" value="3" />
     </label>
@@ -182,6 +207,7 @@
 
 <div id="toast" class="toast hidden"></div>
 
+<script src="tarot.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

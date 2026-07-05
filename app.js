@@ -6,6 +6,7 @@ const DAY = 86400000;
 
 const defaultState = {
   startDate: todayStr(),
+  birthDate: '',
   drinksPerDay: 3,
   pricePerDrink: 500,
   calPerDrink: 150,
@@ -91,6 +92,7 @@ const QUOTES = [
 function render() {
   renderHome();
   renderGoal();
+  renderFortune();
   renderLog();
   renderCalendar();
   renderMoodChart();
@@ -123,6 +125,25 @@ function milestoneLine(days) {
   const next = BADGES.find(b => b.days > days);
   if (!next) return '全マイルストーン達成！🎉';
   return `次の目標「${next.title}」まであと ${next.days - days} 日`;
+}
+
+function renderFortune() {
+  if (!window.Tarot) return;
+  const today = todayStr();
+  const f = Tarot.drawFortune(state.birthDate, today);
+  $('#fortuneDate').textContent = today;
+  const visual = $('#tarotVisual');
+  visual.classList.toggle('reversed', f.reversed);
+  $('#tarotEmoji').textContent = f.card.emoji;
+  $('#tarotNum').textContent = f.card.n;
+  $('#fortuneName').innerHTML = `${f.card.name}<span class="orient">（${f.orientation}）</span>`;
+  $('#fortuneStars').textContent = '★'.repeat(f.stars) + '☆'.repeat(5 - f.stars);
+  $('#fortuneMeaning').textContent = f.meaning;
+  $('#fortuneAdvice').textContent = '💫 ' + f.advice;
+  $('#fortuneLucky').innerHTML =
+    `<span class="luck"><span class="swatch" style="background:${f.color.hex}"></span>ラッキーカラー: ${f.color.name}</span>` +
+    `<span class="luck">🔢 ラッキーナンバー: ${f.luckyNumber}</span>` +
+    `<span class="luck">🎁 ラッキーアイテム: ${f.item}</span>`;
 }
 
 function renderGoal() {
@@ -345,6 +366,7 @@ function initLogForm() {
 /* ---------- settings ---------- */
 function openSettings() {
   $('#startDate').value = state.startDate;
+  $('#birthDate').value = state.birthDate;
   $('#drinksPerDay').value = state.drinksPerDay;
   $('#pricePerDrink').value = state.pricePerDrink;
   $('#calPerDrink').value = state.calPerDrink;
@@ -374,6 +396,7 @@ async function saveSettings() {
   const sd = $('#startDate').value;
   if (sd && parseDate(sd) > new Date()) { toast('未来の日付は設定できません'); return; }
   state.startDate = sd || state.startDate;
+  state.birthDate = $('#birthDate').value || '';
   state.drinksPerDay = Math.max(0, Number($('#drinksPerDay').value) || 0);
   state.pricePerDrink = Math.max(0, Number($('#pricePerDrink').value) || 0);
   state.calPerDrink = Math.max(0, Number($('#calPerDrink').value) || 0);

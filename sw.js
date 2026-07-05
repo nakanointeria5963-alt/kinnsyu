@@ -1,10 +1,11 @@
 /* Minimal offline cache for the 禁酒トラッカー PWA */
-const CACHE = 'kinshu-v1';
+const CACHE = 'kinshu-v2';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
   './app.js',
+  './tarot.js',
   './manifest.json',
 ];
 

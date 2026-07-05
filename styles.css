@@ -89,6 +89,44 @@ main { padding: 8px 16px; }
 .quote-card { border-left: 4px solid var(--accent); }
 .quote { font-style: italic; color: var(--text); }
 
+/* ---- 今日のタロット占い ---- */
+.fortune-card {
+  background: linear-gradient(160deg, #2a1a4a, #4c1d95 60%, #6d28d9);
+  color: #f5f3ff;
+  border: 1px solid rgba(255,255,255,.12);
+}
+.fortune-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+.fortune-title { font-weight: 700; }
+.fortune-date { font-size: .78rem; opacity: .75; }
+.fortune-body { display: flex; gap: 16px; align-items: center; }
+.tarot {
+  flex: none; width: 84px; height: 118px; border-radius: 12px;
+  background: radial-gradient(circle at 50% 30%, #fef3c7, #fde68a 45%, #f59e0b);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: relative; box-shadow: 0 6px 16px rgba(0,0,0,.35), inset 0 0 0 3px rgba(255,255,255,.5);
+  color: #4c1d95;
+}
+.tarot::before {
+  content: ""; position: absolute; inset: 5px; border-radius: 8px;
+  border: 1px solid rgba(76,29,149,.4);
+}
+.tarot.reversed .tarot-emoji { transform: rotate(180deg); }
+.tarot-emoji { font-size: 2.6rem; line-height: 1; }
+.tarot-num { position: absolute; top: 6px; left: 9px; font-size: .7rem; font-weight: 700; opacity: .7; }
+.fortune-info { flex: 1; }
+.fortune-name { font-size: 1.15rem; font-weight: 800; }
+.fortune-name .orient { font-size: .78rem; font-weight: 600; opacity: .8; margin-left: 6px; }
+.fortune-stars { color: #fde047; font-size: .95rem; letter-spacing: 2px; margin: 2px 0; }
+.fortune-meaning { font-size: .88rem; opacity: .92; }
+.fortune-advice { font-size: .9rem; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.15); }
+.fortune-lucky { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.fortune-lucky .luck {
+  font-size: .76rem; background: rgba(255,255,255,.12); padding: 5px 10px; border-radius: 99px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.fortune-lucky .swatch { width: 11px; height: 11px; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 1px rgba(255,255,255,.5); }
+.fortune-note { font-size: .7rem; opacity: .6; margin-top: 12px; text-align: right; }
+
 .next-badge-card { display: flex; align-items: center; gap: 14px; }
 .next-badge-card .nb-emoji { font-size: 2rem; }
 .next-badge-card .nb-text { flex: 1; }
