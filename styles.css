@@ -70,15 +70,35 @@ main { padding: 8px 16px; }
 .card h2 { font-size: 1.05rem; margin-bottom: 14px; }
 
 .counter-card {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 14px;
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   color: #fff;
 }
+.counter-main { flex: 1; min-width: 0; }
 .counter-label { font-size: .9rem; opacity: .85; }
-.counter-value { font-size: 4.2rem; font-weight: 800; line-height: 1.1; }
-.counter-value .unit { font-size: 1.6rem; font-weight: 600; margin-left: 6px; }
+.counter-value { font-size: 3.8rem; font-weight: 800; line-height: 1.1; }
+.counter-value .unit { font-size: 1.5rem; font-weight: 600; margin-left: 6px; }
 .counter-sub { font-size: .95rem; opacity: .9; }
 .counter-detail { font-size: .8rem; opacity: .8; margin-top: 6px; }
+
+.liver-wrap { flex: none; width: 108px; text-align: center; }
+.liver-svg {
+  width: 100px; height: 84px; display: block; margin: 0 auto;
+  filter: drop-shadow(0 3px 5px rgba(0,0,0,.3));
+  transition: none;
+}
+.liver-svg #liverBody { transition: fill .6s ease; }
+.liver-caption { font-size: .74rem; opacity: .95; margin-top: 4px; line-height: 1.35; }
+.liver-caption b { font-size: .98rem; font-weight: 800; }
+.liver-note { font-size: .62rem; opacity: .6; margin-top: 2px; }
+
+@media (max-width: 380px) {
+  .counter-value { font-size: 3rem; }
+  .liver-wrap { width: 92px; }
+  .liver-svg { width: 84px; height: 70px; }
+}
 
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .stat { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px; }

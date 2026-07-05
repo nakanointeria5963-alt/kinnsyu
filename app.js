@@ -91,6 +91,7 @@ const QUOTES = [
 /* ---------- rendering ---------- */
 function render() {
   renderHome();
+  renderLiver();
   renderGoal();
   renderFortune();
   renderLog();
@@ -125,6 +126,28 @@ function milestoneLine(days) {
   const next = BADGES.find(b => b.days > days);
   if (!next) return '全マイルストーン達成！🎉';
   return `次の目標「${next.title}」まであと ${next.days - days} 日`;
+}
+
+/* 肝臓の回復イメージ：30日かけて濃い茶色→健康的なピンクへ1日ずつ変化 */
+const LIVER_TARGET_DAYS = 30;
+function liverColor(days) {
+  const t = Math.max(0, Math.min(1, days / LIVER_TARGET_DAYS));
+  const from = [43, 24, 16];    // すごく濃い茶色 #2b1810
+  const to = [233, 150, 140];   // 健康的なピンク  #e9968c
+  const c = from.map((f, i) => Math.round(f + (to[i] - f) * t));
+  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+}
+function renderLiver() {
+  const days = Math.min(currentDays(), LIVER_TARGET_DAYS);
+  const body = document.getElementById('liverBody');
+  if (body) body.setAttribute('fill', liverColor(days));
+  const remain = Math.max(0, LIVER_TARGET_DAYS - days);
+  const cap = $('#liverCaption');
+  if (cap) {
+    cap.innerHTML = remain > 0
+      ? `健康な肝臓まで<br><b>あと ${remain} 日</b>`
+      : `健康な状態に到達 🎉`;
+  }
 }
 
 function renderFortune() {
