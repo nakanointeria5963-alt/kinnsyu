@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#0f766e" />
+<title>禁酒トラッカー</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>" />
+<link rel="manifest" href="manifest.json" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app">
+  <header class="app-header">
+    <h1>🌱 禁酒トラッカー</h1>
+    <button id="settingsBtn" class="icon-btn" aria-label="設定">⚙️</button>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="home">ホーム</button>
+    <button class="tab" data-tab="log">記録</button>
+    <button class="tab" data-tab="stats">統計</button>
+    <button class="tab" data-tab="badges">達成</button>
+  </nav>
+
+  <main>
+    <!-- HOME -->
+    <section id="home" class="view active">
+      <div class="card counter-card">
+        <p class="counter-label">禁酒継続</p>
+        <div class="counter-value"><span id="daysCount">0</span><span class="unit">日</span></div>
+        <p id="counterSub" class="counter-sub"></p>
+        <div class="counter-detail" id="counterDetail"></div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="card stat">
+          <span class="stat-emoji">💰</span>
+          <span class="stat-num" id="moneySaved">¥0</span>
+          <span class="stat-cap">節約金額</span>
+        </div>
+        <div class="card stat">
+          <span class="stat-emoji">🔥</span>
+          <span class="stat-num" id="calSaved">0</span>
+          <span class="stat-cap">削減kcal</span>
+        </div>
+        <div class="card stat">
+          <span class="stat-emoji">🍺</span>
+          <span class="stat-num" id="drinksAvoided">0</span>
+          <span class="stat-cap">飲まなかった杯数</span>
+        </div>
+        <div class="card stat">
+          <span class="stat-emoji">🏆</span>
+          <span class="stat-num" id="bestStreak">0</span>
+          <span class="stat-cap">最長記録(日)</span>
+        </div>
+      </div>
+
+      <div class="card quote-card">
+        <p id="quote" class="quote"></p>
+      </div>
+
+      <div class="card next-badge-card" id="nextBadgeCard"></div>
+
+      <div class="action-row">
+        <button id="checkInBtn" class="btn btn-primary">今日をチェックイン ✅</button>
+        <button id="relapseBtn" class="btn btn-danger">飲んでしまった…</button>
+      </div>
+    </section>
+
+    <!-- LOG -->
+    <section id="log" class="view">
+      <div class="card">
+        <h2>今日の記録</h2>
+        <div class="mood-row" id="moodRow">
+          <button class="mood" data-mood="5">😄</button>
+          <button class="mood" data-mood="4">🙂</button>
+          <button class="mood" data-mood="3">😐</button>
+          <button class="mood" data-mood="2">😟</button>
+          <button class="mood" data-mood="1">😣</button>
+        </div>
+        <label class="field">
+          <span>飲みたい気持ち（渇望）</span>
+          <input type="range" id="craving" min="0" max="10" value="0" />
+          <output id="cravingOut">0 / 10</output>
+        </label>
+        <textarea id="note" placeholder="今日の気づき・トリガー・工夫など…"></textarea>
+        <button id="saveLogBtn" class="btn btn-primary">記録を保存</button>
+      </div>
+
+      <div class="card">
+        <h2>これまでの記録</h2>
+        <div id="logList" class="log-list"></div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <section id="stats" class="view">
+      <div class="card">
+        <h2>カレンダー</h2>
+        <div class="cal-head">
+          <button id="calPrev" class="icon-btn">‹</button>
+          <span id="calTitle"></span>
+          <button id="calNext" class="icon-btn">›</button>
+        </div>
+        <div id="calendar" class="calendar"></div>
+        <div class="cal-legend">
+          <span><i class="dot sober"></i>禁酒</span>
+          <span><i class="dot relapse"></i>飲酒</span>
+          <span><i class="dot today"></i>今日</span>
+        </div>
+      </div>
+      <div class="card">
+        <h2>気分の推移（直近14日）</h2>
+        <canvas id="moodChart" height="140"></canvas>
+      </div>
+    </section>
+
+    <!-- BADGES -->
+    <section id="badges" class="view">
+      <div class="card">
+        <h2>マイルストーン</h2>
+        <div id="badgeGrid" class="badge-grid"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Settings modal -->
+<div id="settingsModal" class="modal hidden">
+  <div class="modal-box">
+    <h2>設定</h2>
+    <label class="field">
+      <span>禁酒を始めた日</span>
+      <input type="date" id="startDate" />
+    </label>
+    <label class="field">
+      <span>1日あたりの平均飲酒量（杯）</span>
+      <input type="number" id="drinksPerDay" min="0" step="0.5" value="3" />
+    </label>
+    <label class="field">
+      <span>1杯あたりの金額（円）</span>
+      <input type="number" id="pricePerDrink" min="0" step="10" value="500" />
+    </label>
+    <label class="field">
+      <span>1杯あたりのカロリー（kcal）</span>
+      <input type="number" id="calPerDrink" min="0" step="10" value="150" />
+    </label>
+    <div class="modal-actions">
+      <button id="saveSettings" class="btn btn-primary">保存</button>
+      <button id="closeSettings" class="btn">閉じる</button>
+    </div>
+    <button id="resetAll" class="btn btn-link-danger">すべてのデータを削除</button>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
