@@ -13,6 +13,10 @@ const defaultState = {
   logs: {},       // { 'YYYY-MM-DD': { mood, craving, note } }
   checkIns: [],   // array of date strings
   bestStreak: 0,
+  goalDays: 30,
+  reminderOn: false,
+  reminderTime: '21:00',
+  lastReminded: '',   // date string of the last day a reminder fired
 };
 
 let state = load();
@@ -86,6 +90,7 @@ const QUOTES = [
 /* ---------- rendering ---------- */
 function render() {
   renderHome();
+  renderGoal();
   renderLog();
   renderCalendar();
   renderMoodChart();
@@ -118,6 +123,22 @@ function milestoneLine(days) {
   const next = BADGES.find(b => b.days > days);
   if (!next) return '全マイルストーン達成！🎉';
   return `次の目標「${next.title}」まであと ${next.days - days} 日`;
+}
+
+function renderGoal() {
+  const days = currentDays();
+  const goal = Math.max(1, state.goalDays || 1);
+  const pct = Math.min(100, Math.round((days / goal) * 100));
+  const reached = days >= goal;
+  const card = $('#goalCard');
+  card.classList.toggle('reached', reached);
+  $('#goalCount').innerHTML = `<b>${days}</b> / ${goal} 日`;
+  $('#goalBar').style.width = Math.max(3, pct) + '%';
+  if (reached) {
+    $('#goalSub').textContent = `🎉 目標達成！新しい目標を設定してさらに前へ。`;
+  } else {
+    $('#goalSub').textContent = `達成率 ${pct}% ・ あと ${goal - days} 日`;
+  }
 }
 
 function renderNextBadge(days) {
@@ -327,19 +348,93 @@ function openSettings() {
   $('#drinksPerDay').value = state.drinksPerDay;
   $('#pricePerDrink').value = state.pricePerDrink;
   $('#calPerDrink').value = state.calPerDrink;
+  $('#goalDays').value = state.goalDays;
+  $('#reminderOn').checked = state.reminderOn;
+  $('#reminderTime').value = state.reminderTime;
+  updateReminderUI();
   $('#settingsModal').classList.remove('hidden');
 }
-function saveSettings() {
+
+function updateReminderUI() {
+  const on = $('#reminderOn').checked;
+  $('#reminderTimeField').style.display = on ? '' : 'none';
+  const hint = $('#reminderHint');
+  if (!('Notification' in window)) {
+    hint.textContent = 'この端末/ブラウザは通知に対応していません。';
+  } else if (!on) {
+    hint.textContent = 'アプリを開いている間、設定時刻に「まだ記録していない日」だけお知らせします。';
+  } else if (Notification.permission === 'denied') {
+    hint.textContent = '通知がブラウザでブロックされています。ブラウザの設定から許可してください。';
+  } else {
+    hint.textContent = '設定時刻にアプリ（またはホーム画面のPWA）を開いていると通知が届きます。';
+  }
+}
+
+async function saveSettings() {
   const sd = $('#startDate').value;
   if (sd && parseDate(sd) > new Date()) { toast('未来の日付は設定できません'); return; }
   state.startDate = sd || state.startDate;
   state.drinksPerDay = Math.max(0, Number($('#drinksPerDay').value) || 0);
   state.pricePerDrink = Math.max(0, Number($('#pricePerDrink').value) || 0);
   state.calPerDrink = Math.max(0, Number($('#calPerDrink').value) || 0);
+  state.goalDays = Math.max(1, Math.round(Number($('#goalDays').value) || 30));
+  state.reminderTime = $('#reminderTime').value || '21:00';
+
+  const wantReminder = $('#reminderOn').checked;
+  if (wantReminder && 'Notification' in window && Notification.permission === 'default') {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') {
+      $('#reminderOn').checked = false;
+      toast('通知が許可されなかったため、リマインダーはオフのままです');
+    }
+  }
+  state.reminderOn = $('#reminderOn').checked && ('Notification' in window) && Notification.permission === 'granted';
+
   save();
   $('#settingsModal').classList.add('hidden');
+  scheduleReminder();
   render();
   toast('設定を保存しました');
+}
+
+/* ---------- reminders ----------
+   Server-less PWA: we can only notify while the page/PWA is open. We schedule a
+   timer for today's reminder time and fire it if the user hasn't checked in. */
+let reminderTimer = null;
+function scheduleReminder() {
+  if (reminderTimer) { clearTimeout(reminderTimer); reminderTimer = null; }
+  if (!state.reminderOn || !('Notification' in window) || Notification.permission !== 'granted') return;
+
+  const [h, m] = (state.reminderTime || '21:00').split(':').map(Number);
+  const now = new Date();
+  const target = new Date();
+  target.setHours(h, m, 0, 0);
+
+  // Already past the time today and not yet reminded / not checked in? Nudge shortly.
+  if (target <= now) {
+    maybeNotify();
+    // schedule for tomorrow
+    target.setDate(target.getDate() + 1);
+  }
+  const delay = Math.min(target - now, 2 ** 31 - 1);
+  reminderTimer = setTimeout(() => { maybeNotify(); scheduleReminder(); }, delay);
+}
+
+function maybeNotify() {
+  const t = todayStr();
+  if (state.checkIns.includes(t)) return;      // already logged today
+  if (state.lastReminded === t) return;         // don't repeat within the same day
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+  state.lastReminded = t;
+  save();
+  const days = currentDays();
+  const body = days > 0
+    ? `禁酒 ${days} 日目。今日の気分を記録して継続を残しましょう 🌱`
+    : `今日の一歩を記録しましょう。あなたならできます 🌱`;
+  try {
+    new Notification('禁酒トラッカー', { body, tag: 'kinshu-daily', renotify: false });
+  } catch (e) { /* some browsers require SW-based notifications */ }
 }
 
 /* ---------- tabs ---------- */
@@ -369,6 +464,7 @@ function init() {
   $('#relapseBtn').addEventListener('click', relapse);
   $('#settingsBtn').addEventListener('click', openSettings);
   $('#saveSettings').addEventListener('click', saveSettings);
+  $('#reminderOn').addEventListener('change', updateReminderUI);
   $('#closeSettings').addEventListener('click', () => $('#settingsModal').classList.add('hidden'));
   $('#settingsModal').addEventListener('click', e => { if (e.target.id === 'settingsModal') $('#settingsModal').classList.add('hidden'); });
   $('#resetAll').addEventListener('click', () => {
@@ -386,6 +482,10 @@ function init() {
 
   initLogForm();
   render();
+  scheduleReminder();
+
+  // Re-check reminders when the app regains focus (e.g. next morning).
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleReminder(); });
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
