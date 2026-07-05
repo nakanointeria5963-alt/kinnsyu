@@ -18,6 +18,8 @@ const defaultState = {
   reminderOn: false,
   reminderTime: '21:00',
   lastReminded: '',   // date string of the last day a reminder fired
+  advice: null,        // { date, salt, text } — 今日のアドバイスのキャッシュ
+  adviceHistory: {},   // 直近に使った文の履歴（繰り返し防止）
 };
 
 let state = load();
@@ -93,6 +95,7 @@ function render() {
   renderHome();
   renderLiver();
   renderGoal();
+  renderAdvice();
   renderFortune();
   renderLog();
   renderCalendar();
@@ -126,6 +129,28 @@ function milestoneLine(days) {
   const next = BADGES.find(b => b.days > days);
   if (!next) return '全マイルストーン達成！🎉';
   return `次の目標「${next.title}」まであと ${next.days - days} 日`;
+}
+
+/* AIの今日のアドバイス（端末内生成・カスタム指示に従う） */
+function renderAdvice(force) {
+  const el = $('#adviceBody');
+  if (!el || !window.Advisor) return;
+  const today = todayStr();
+  const age = Advisor.ageFrom(state.birthDate);
+
+  if (!force && state.advice && state.advice.date === today &&
+      state.advice.age === (age == null ? null : age) && state.advice.text) {
+    el.textContent = state.advice.text;
+    return;
+  }
+  const salt = (force && state.advice && state.advice.date === today) ? (state.advice.salt || 0) + 1 : 0;
+  if (!state.adviceHistory) state.adviceHistory = {};
+  const { text } = Advisor.generate({
+    days: currentDays(), age, date: today, salt, history: state.adviceHistory,
+  });
+  state.advice = { date: today, salt, age: (age == null ? null : age), text };
+  save();
+  el.textContent = text;
 }
 
 /* 肝臓の回復イメージ：30日かけて濃い茶色→健康的なピンクへ1日ずつ変化 */
@@ -419,7 +444,9 @@ async function saveSettings() {
   const sd = $('#startDate').value;
   if (sd && parseDate(sd) > new Date()) { toast('未来の日付は設定できません'); return; }
   state.startDate = sd || state.startDate;
-  state.birthDate = $('#birthDate').value || '';
+  const newBirth = $('#birthDate').value || '';
+  if (newBirth !== state.birthDate) state.advice = null;  // 年齢が変われば作り直す
+  state.birthDate = newBirth;
   state.drinksPerDay = Math.max(0, Number($('#drinksPerDay').value) || 0);
   state.pricePerDrink = Math.max(0, Number($('#pricePerDrink').value) || 0);
   state.calPerDrink = Math.max(0, Number($('#calPerDrink').value) || 0);
@@ -508,6 +535,11 @@ function init() {
   $$('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
   $('#checkInBtn').addEventListener('click', checkIn);
   $('#relapseBtn').addEventListener('click', relapse);
+  $('#adviceRefresh').addEventListener('click', () => {
+    const btn = $('#adviceRefresh');
+    btn.classList.remove('spin'); void btn.offsetWidth; btn.classList.add('spin');
+    renderAdvice(true);
+  });
   $('#settingsBtn').addEventListener('click', openSettings);
   $('#saveSettings').addEventListener('click', saveSettings);
   $('#reminderOn').addEventListener('change', updateReminderUI);

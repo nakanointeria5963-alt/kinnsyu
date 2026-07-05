@@ -109,6 +109,31 @@ main { padding: 8px 16px; }
 .quote-card { border-left: 4px solid var(--accent); }
 .quote { font-style: italic; color: var(--text); }
 
+/* ---- AIの今日のアドバイス ---- */
+.advice-card { border: 1px solid var(--border); }
+.advice-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.advice-avatar {
+  flex: none; width: 42px; height: 42px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 1.35rem;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff;
+}
+.advice-titles { flex: 1; display: flex; flex-direction: column; line-height: 1.25; }
+.advice-title { font-weight: 700; font-size: 1rem; }
+.advice-sub { font-size: .74rem; color: var(--muted); }
+.advice-refresh {
+  flex: none; background: var(--bg); border: 1px solid var(--border); cursor: pointer;
+  width: 38px; height: 38px; border-radius: 10px; font-size: 1.05rem; color: var(--text);
+  transition: .15s;
+}
+.advice-refresh:hover { background: var(--border); }
+.advice-refresh:active { transform: scale(.95); }
+.advice-refresh.spin { animation: spin .5s ease; }
+@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+.advice-body {
+  white-space: pre-line; font-size: .93rem; line-height: 1.75; color: var(--text);
+}
+.advice-note { font-size: .72rem; color: var(--muted); margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+
 /* ---- 今日のタロット占い ---- */
 .fortune-card {
   background: linear-gradient(160deg, #2a1a4a, #4c1d95 60%, #6d28d9);
