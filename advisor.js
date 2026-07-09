@@ -157,20 +157,6 @@ const CLOSING = [
   '未来のあなたが、今日の選択にきっと感謝します。',
 ];
 
-/* ---- 乱数・ハッシュ ---- */
-function hashSeed(str) {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
-  return h >>> 0;
-}
-function rng(seed) {
-  let s = seed >>> 0;
-  return function () {
-    s = (Math.imul(s ^ (s >>> 15), 1 | s) >>> 0);
-    s = (s + Math.imul(s ^ (s >>> 7), 61 | s)) >>> 0;
-    return ((s ^ (s >>> 14)) >>> 0) / 4294967296;
-  };
-}
 /* 直近に使ったものを避けて選ぶ */
 function pick(pool, rand, history, keep) {
   let avail = pool.filter(s => !history.includes(s));
@@ -196,7 +182,7 @@ function generate({ days, age, date, salt = 0, history }) {
   history = history || {};
   for (const k of ['med', 'age', 'trivia', 'tip', 'closing']) if (!history[k]) history[k] = [];
 
-  const rand = rng(hashSeed(`${date}|${salt}|${age == null ? 'x' : age}|${days}`));
+  const rand = Util.rng(Util.hashSeed(`${date}|${salt}|${age == null ? 'x' : age}|${days}`));
   const grp = ageGroup(age);
   const label = ageLabel(age);
 

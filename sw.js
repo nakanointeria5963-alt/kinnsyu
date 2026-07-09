@@ -1,13 +1,19 @@
-/* Minimal offline cache for the 禁酒トラッカー PWA */
-const CACHE = 'kinshu-v3';
+/* 禁酒トラッカー Service Worker
+   - ページ(HTML)はネットワーク優先: 更新が確実にユーザーに届く
+   - アセットはキャッシュ優先＋裏で更新(stale-while-revalidate) */
+const CACHE = 'kinshu-v4';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
+  './util.js',
   './app.js',
   './tarot.js',
   './advisor.js',
   './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  './apple-touch-icon.png',
 ];
 
 self.addEventListener('install', e => {
@@ -22,12 +28,32 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
+  const req = e.request;
+  if (req.method !== 'GET') return;
+
+  if (req.mode === 'navigate') {
+    e.respondWith(
+      fetch(req).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put('./index.html', copy)).catch(() => {});
+        return res;
+      }).catch(() => caches.match('./index.html').then(r => r || caches.match('./')))
+    );
+    return;
+  }
+
+  if (new URL(req.url).origin !== location.origin) return;
+
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
-      const copy = res.clone();
-      caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
-      return res;
-    }).catch(() => cached))
+    caches.match(req).then(cached => {
+      const fetched = fetch(req).then(res => {
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+        }
+        return res;
+      }).catch(() => cached);
+      return cached || fetched;
+    })
   );
 });

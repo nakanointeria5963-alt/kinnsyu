@@ -56,28 +56,10 @@ const LUCKY_ITEMS = [
   'ストレッチ', 'キャンドル', 'コーヒー', '深呼吸', '手書きのメモ',
 ];
 
-/* 32-bit ハッシュ（FNV-1a）から擬似乱数を作る */
-function hashSeed(str) {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
-  }
-  return h >>> 0;
-}
-function rng(seed) {
-  let s = seed >>> 0;
-  return function () {
-    s = (Math.imul(s ^ (s >>> 15), 1 | s) >>> 0);
-    s = (s + Math.imul(s ^ (s >>> 7), 61 | s)) >>> 0;
-    return ((s ^ (s >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 /* 誕生日(YYYY-MM-DD or '') と当日(YYYY-MM-DD) から今日の運勢を返す */
 function drawFortune(birthDate, dateStr) {
-  const seed = hashSeed((birthDate || 'guest') + '|' + dateStr);
-  const rand = rng(seed);
+  const seed = Util.hashSeed((birthDate || 'guest') + '|' + dateStr);
+  const rand = Util.rng(seed);
   const card = TAROT_CARDS[Math.floor(rand() * TAROT_CARDS.length)];
   const reversed = rand() < 0.35;
   const advice = FORTUNE_ADVICE[Math.floor(rand() * FORTUNE_ADVICE.length)];
