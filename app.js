@@ -26,6 +26,9 @@ const defaultState = {
   bestStreak: 0,
   badgeDates: {},           // { 日数: 達成日 }
   reasons: [],              // 禁酒する理由
+  rewardName: '',           // ごほうび貯金の目当て
+  rewardPrice: 0,
+  rewardCelebrated: '',     // 祝福済みのごほうび（name+price）
   tarotFlipped: '',         // タロットをめくった日
   advice: null,
   adviceHistory: {},
@@ -107,8 +110,11 @@ function updateDerived() {
 
 /* ═══════════════ 描画 ═══════════════ */
 function render() {
+  renderGreeting();
   renderHero();
+  renderWeekStrip();
   renderGoal();
+  renderReward();
   renderStats();
   renderAdvice();
   renderFortune();
@@ -118,6 +124,18 @@ function render() {
   renderCharts();
   renderTriggerInsight();
   renderBadges();
+}
+
+/* --- あいさつ（時間帯＋日替わりのひとこと） --- */
+function renderGreeting() {
+  const h = new Date().getHours();
+  const g = h < 5 ? 'こんばんは 🌙' : h < 11 ? 'おはようございます ☀️' : h < 18 ? 'こんにちは 🌤️' : 'こんばんは 🌙';
+  const msgs = [
+    '今日も自分のペースで。', '小さな一歩が、大きな変化に。', '昨日の自分に、ありがとう。',
+    '焦らず、比べず、一日ずつ。', 'その調子です。', '今日のあなたを応援しています。',
+    '深呼吸を忘れずに。', '休むのも、前に進むうち。',
+  ];
+  $('#greeting').textContent = `${g} ${msgs[Util.hashSeed(todayStr() + 'greet') % msgs.length]}`;
 }
 
 /* --- ヒーロー（リング・肝臓・チップ） --- */
@@ -175,6 +193,29 @@ function renderLiver(days) {
     : `健康な状態に到達 🎉`;
 }
 
+/* --- 直近7日ストリップ（タップでその日の記録へ） --- */
+function renderWeekStrip() {
+  const el = $('#weekStrip');
+  if (!el) return;
+  const today = todayStr();
+  const dows = ['日', '月', '火', '水', '木', '金', '土'];
+  let html = '';
+  for (let i = 6; i >= 0; i--) {
+    const ds = addDays(today, -i);
+    const log = state.logs[ds];
+    const relapse = isRelapseDay(ds);
+    const inRange = ds >= state.startDate;
+    const icon = relapse ? '🍺' : log ? (MOOD_EMOJI[log.mood] || '📝') : inRange ? '🌱' : '·';
+    const cls = 'ws-day' + (ds === today ? ' today' : '') + (relapse ? ' relapse' : '') +
+      (!log && !relapse ? ' faint' : '');
+    html += `<button class="${cls}" data-date="${ds}" aria-label="${fmtDate(ds)}の記録を開く">
+      <span class="ws-dow">${dows[parseDate(ds).getDay()]}</span><span class="ws-icon">${icon}</span></button>`;
+  }
+  el.innerHTML = html;
+  $$('#weekStrip .ws-day').forEach(b =>
+    b.addEventListener('click', () => openRecordSheet(b.dataset.date)));
+}
+
 /* --- 目標 --- */
 function renderGoal() {
   const days = currentDays();
@@ -196,10 +237,39 @@ function renderGoal() {
   }
 }
 
+/* --- ごほうび貯金 --- */
+function savedMoney() { return Math.round(totalSoberDays() * state.drinksPerDay * state.pricePerDrink); }
+
+function renderReward() {
+  const card = $('#rewardCard');
+  if (!card) return;
+  const name = (state.rewardName || '').trim();
+  const price = Math.round(Number(state.rewardPrice) || 0);
+  if (!name || price <= 0) { card.hidden = true; return; }
+  card.hidden = false;
+  const money = savedMoney();
+  const pct = Math.min(100, Math.round((money / price) * 100));
+  const reached = money >= price;
+  card.classList.toggle('reached', reached);
+  $('#rewardCount').innerHTML = `<b>¥${Math.min(money, price).toLocaleString('ja-JP')}</b> / ¥${price.toLocaleString('ja-JP')}`;
+  $('#rewardBar').style.width = Math.max(3, pct) + '%';
+  $('#rewardSub').textContent = reached
+    ? `🎉 「${name}」が買える分、貯まりました！自分にごほうびを。`
+    : `「${name}」まで あと ¥${(price - money).toLocaleString('ja-JP')}（${pct}%）`;
+
+  const key = name + '|' + price;
+  if (reached && state.rewardCelebrated !== key) {
+    state.rewardCelebrated = key;
+    save();
+    celebrate();
+    toast(`🎁 ごほうび「${name}」分の節約を達成！`);
+  }
+}
+
 /* --- 統計（通算ベース） --- */
 function renderStats() {
   const total = totalSoberDays();
-  const money = Math.round(total * state.drinksPerDay * state.pricePerDrink);
+  const money = savedMoney();
   const cals = Math.round(total * state.drinksPerDay * state.calPerDrink);
   const drinks = Math.round(total * state.drinksPerDay);
   $('#moneySaved').textContent = '¥' + money.toLocaleString('ja-JP');
@@ -517,6 +587,7 @@ function saveLog() {
   } else {
     toast('記録を保存しました ✍️');
   }
+  buzz(12);
 }
 
 /* ═══════════════ スリップシート ═══════════════ */
@@ -559,7 +630,11 @@ function openSos() {
   $('#breathCount').textContent = '60';
   $('#sosStart').hidden = false;
   $('#breathCircle').className = 'breath-circle';
-  $('#sosOverlay').classList.remove('hidden');
+  const ov = $('#sosOverlay');
+  if (ov.classList.contains('hidden')) {
+    ov.classList.remove('hidden');
+    try { history.pushState({ sheet: '#sosOverlay' }, ''); } catch (e) {}
+  }
 }
 
 function startBreathing() {
@@ -595,9 +670,14 @@ function startBreathing() {
   }, 1000);
 }
 
-function closeSos() {
+function closeSos(fromPop) {
   clearInterval(breathTimer);
-  $('#sosOverlay').classList.add('hidden');
+  const ov = $('#sosOverlay');
+  if (ov.classList.contains('hidden')) return;
+  ov.classList.add('hidden');
+  if (!fromPop && history.state && history.state.sheet === '#sosOverlay') {
+    try { history.back(); } catch (e) {}
+  }
 }
 
 /* ═══════════════ 設定 ═══════════════ */
@@ -607,6 +687,8 @@ function openSettings() {
   $('#drinksPerDay').value = state.drinksPerDay;
   $('#pricePerDrink').value = state.pricePerDrink;
   $('#calPerDrink').value = state.calPerDrink;
+  $('#rewardName').value = state.rewardName || '';
+  $('#rewardPrice').value = state.rewardPrice || '';
   $('#birthDate').value = state.birthDate;
   $('#reasonsInput').value = state.reasons.join('\n');
   $('#reminderOn').checked = state.reminderOn;
@@ -634,6 +716,8 @@ async function saveSettings() {
   state.drinksPerDay = Math.max(0, Number($('#drinksPerDay').value) || 0);
   state.pricePerDrink = Math.max(0, Number($('#pricePerDrink').value) || 0);
   state.calPerDrink = Math.max(0, Number($('#calPerDrink').value) || 0);
+  state.rewardName = $('#rewardName').value.trim();
+  state.rewardPrice = Math.max(0, Math.round(Number($('#rewardPrice').value) || 0));
   const newBirth = $('#birthDate').value || '';
   if (newBirth !== state.birthDate) state.advice = null;
   state.birthDate = newBirth;
@@ -758,6 +842,7 @@ function showOnboarding() {
 
 /* ═══════════════ 紙吹雪 ═══════════════ */
 function celebrate() {
+  buzz([20, 60, 20]);
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const colors = ['#f59e0b', '#34d399', '#60a5fa', '#f472b6', '#fbbf24', '#2dd4bf'];
   for (let i = 0; i < 70; i++) {
@@ -788,8 +873,54 @@ function switchTab(name) {
   window.scrollTo({ top: 0 });
 }
 
-function openSheet(sel) { $(sel).classList.remove('hidden'); }
-function closeSheet(sel) { $(sel).classList.add('hidden'); }
+/* シートは開くと履歴を1つ積む → スマホの「戻る」で閉じられる */
+const SHEET_SELS = ['#recordSheet', '#relapseSheet', '#settingsSheet'];
+let lastFocus = null;
+
+function openSheet(sel) {
+  const el = $(sel);
+  if (!el.classList.contains('hidden')) return;
+  lastFocus = document.activeElement;
+  el.classList.remove('hidden');
+  try { history.pushState({ sheet: sel }, ''); } catch (e) {}
+  const panel = el.querySelector('.sheet-panel, .sos-box');
+  if (panel) { panel.setAttribute('tabindex', '-1'); panel.focus({ preventScroll: true }); }
+}
+
+function closeSheet(sel, fromPop) {
+  const el = $(sel);
+  if (el.classList.contains('hidden')) return;
+  el.classList.add('hidden');
+  if (!fromPop && history.state && history.state.sheet === sel) {
+    try { history.back(); } catch (e) {}
+  }
+  if (lastFocus && lastFocus.focus) { try { lastFocus.focus({ preventScroll: true }); } catch (e) {} lastFocus = null; }
+}
+
+window.addEventListener('popstate', () => {
+  SHEET_SELS.forEach(s => closeSheet(s, true));
+  const sos = $('#sosOverlay');
+  if (sos && !sos.classList.contains('hidden')) closeSos(true);
+});
+
+/* 端末が対応していれば軽い振動でフィードバック */
+function buzz(pattern) {
+  if (navigator.vibrate) { try { navigator.vibrate(pattern || 12); } catch (e) {} }
+}
+
+/* 実績のシェア（Web Share API → なければクリップボード） */
+async function shareProgress() {
+  const text = `🌱 禁酒${currentDays()}日目！通算${totalSoberDays()}日で ¥${savedMoney().toLocaleString('ja-JP')} 節約しました。今日も一日ずつ。 #禁酒`;
+  if (navigator.share) {
+    try { await navigator.share({ text }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('シェア用の文章をコピーしました 📋');
+  } catch (e) {
+    toast('この端末ではシェアできませんでした');
+  }
+}
 
 let toastTimer;
 function toast(msg, action) {
@@ -813,6 +944,9 @@ function init() {
   /* ナビ */
   $$('.nav-item').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
 
+  /* シェア */
+  $('#shareBtn').addEventListener('click', shareProgress);
+
   /* ホーム */
   $('#recordTodayBtn').addEventListener('click', () => openRecordSheet(todayStr()));
   $('#relapseBtn').addEventListener('click', openRelapseSheet);
@@ -824,6 +958,7 @@ function init() {
   $('#tarotFlip').addEventListener('click', () => {
     if (state.tarotFlipped === todayStr()) return;
     state.tarotFlipped = todayStr();
+    buzz(10);
     save();
     fillFortune();
     $('#tarotFlip').classList.add('flipped');
@@ -856,7 +991,7 @@ function init() {
   /* SOS */
   $('#sosBtn').addEventListener('click', openSos);
   $('#sosStart').addEventListener('click', startBreathing);
-  $('#sosClose').addEventListener('click', closeSos);
+  $('#sosClose').addEventListener('click', () => closeSos());
 
   /* 設定 */
   $('#settingsBtn').addEventListener('click', openSettings);
@@ -881,12 +1016,12 @@ function init() {
   });
 
   /* シートの背景タップ・Escで閉じる */
-  ['#recordSheet', '#relapseSheet', '#settingsSheet'].forEach(sel => {
+  SHEET_SELS.forEach(sel => {
     $(sel).addEventListener('click', e => { if (e.target === $(sel)) closeSheet(sel); });
   });
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
-    ['#recordSheet', '#relapseSheet', '#settingsSheet'].forEach(closeSheet);
+    SHEET_SELS.forEach(s => closeSheet(s));
     closeSos();
   });
 

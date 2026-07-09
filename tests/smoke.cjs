@@ -37,6 +37,8 @@ function check(name, cond) {
   check('通算10日', (await page.textContent('#totalNum')) === '10');
   check('節約¥15,000', (await page.textContent('#moneySaved')) === '¥15,000');
   check('禁酒率100%', (await page.textContent('#soberRate')) === '100%');
+  check('あいさつ表示', ((await page.textContent('#greeting')) || '').length > 3);
+  check('週間ストリップ7日分', (await page.$$('#weekStrip .ws-day')).length === 7);
 
   // ── 2. 今日を記録（気分必須） ──
   await page.click('#recordTodayBtn');
@@ -111,7 +113,28 @@ function check(name, cond) {
     page.click('#exportBtn'),
   ]);
   check('エクスポートDL発火', (download.suggestedFilename() || '').startsWith('kinshu-backup-'));
-  await page.click('#closeSettings');
+
+  // ── 7b. ごほうび貯金（節約¥15,000 / 目標¥20,000 → あと¥5,000） ──
+  await page.fill('#rewardName', 'イヤホン');
+  await page.fill('#rewardPrice', '20000');
+  await page.click('#saveSettings');
+  await page.waitForTimeout(400);
+  check('ごほうびカード表示', !(await page.$eval('#rewardCard', el => el.hidden)));
+  const rw = await page.textContent('#rewardSub');
+  check('ごほうび残額あと¥5,000', rw.includes('あと ¥5,000'));
+
+  // ── 7c. 戻るボタンでシートが閉じる ──
+  await page.click('.nav-item[data-tab="home"]');
+  await page.click('#recordTodayBtn');
+  await page.waitForTimeout(250);
+  check('記録シート再表示', !(await page.$eval('#recordSheet', el => el.classList.contains('hidden'))));
+  await page.goBack();
+  await page.waitForTimeout(350);
+  check('戻る操作でシートが閉じる', await page.$eval('#recordSheet', el => el.classList.contains('hidden')));
+
+  // ── 7d. シェアボタン ──
+  await page.click('.nav-item[data-tab="badges"]');
+  check('シェアボタンあり', !!(await page.$('#shareBtn')));
 
   // ── 8. 既存ユーザーの移行（旧形式localStorage） ──
   await page.evaluate(() => {

@@ -25,6 +25,7 @@
   <main id="main">
     <!-- ═══════════ ホーム ═══════════ -->
     <section id="home" class="view active" role="tabpanel" aria-label="ホーム">
+      <p class="greeting" id="greeting"></p>
       <div class="card hero">
         <div class="hero-top">
           <div class="ring-wrap" aria-label="継続日数">
@@ -74,6 +75,7 @@
           <span class="chip">通算 <b id="totalNum">0</b>日</span>
           <span class="chip">🏆 最長 <b id="bestNum">0</b>日</span>
         </div>
+        <div class="week-strip" id="weekStrip" aria-label="直近7日間の記録"></div>
         <p class="hero-start" id="counterSub"></p>
       </div>
 
@@ -87,6 +89,15 @@
         </div>
         <div class="progress"><i id="goalBar"></i></div>
         <p class="goal-sub" id="goalSub"></p>
+      </div>
+
+      <div class="card goal-card" id="rewardCard" hidden>
+        <div class="goal-head">
+          <span class="goal-title">🎁 ごほうび貯金</span>
+          <span class="goal-count" id="rewardCount"></span>
+        </div>
+        <div class="progress"><i id="rewardBar"></i></div>
+        <p class="goal-sub" id="rewardSub"></p>
       </div>
 
       <div class="stat-grid">
@@ -206,6 +217,11 @@
         <h2>マイルストーン</h2>
         <div id="badgeGrid" class="badge-grid"></div>
       </div>
+      <div class="card">
+        <h2>シェア</h2>
+        <p class="hint" style="margin:0 0 12px">がんばりを共有してモチベーションに。日数と節約額だけで、個人情報は含まれません。</p>
+        <button id="shareBtn" class="btn btn-primary" style="width:100%">📣 実績をシェアする</button>
+      </div>
     </section>
   </main>
 
@@ -298,6 +314,11 @@
     <label class="field"><span>1杯あたりの金額（円）</span><input type="number" id="pricePerDrink" min="0" step="10" value="500" /></label>
     <label class="field"><span>1杯あたりのカロリー（kcal）</span><input type="number" id="calPerDrink" min="0" step="10" value="150" /></label>
 
+    <p class="sec-title">ごほうび（任意）</p>
+    <label class="field"><span>節約したお金で欲しいもの</span><input type="text" id="rewardName" placeholder="例: 新しいイヤホン" maxlength="30" /></label>
+    <label class="field"><span>その金額（円）</span><input type="number" id="rewardPrice" min="0" step="100" placeholder="例: 15000" /></label>
+    <p class="hint">設定するとホームに「ごほうび貯金」の進み具合が表示されます。</p>
+
     <p class="sec-title">あなた</p>
     <label class="field"><span>生年月日（占い・アドバイスに使用）</span><input type="date" id="birthDate" /></label>
     <label class="field"><span>禁酒する理由（1行に1つ・SOS時に表示されます）</span><textarea id="reasonsInput" placeholder="例: 家族との時間を大切にしたい&#10;例: 朝スッキリ起きたい"></textarea></label>
@@ -387,7 +408,7 @@
   </div>
 </div>
 
-<div id="toast" class="toast hidden"></div>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 
 <script src="util.js"></script>
 <script src="tarot.js"></script>
