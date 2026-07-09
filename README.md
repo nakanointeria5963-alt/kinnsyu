@@ -1,6 +1,15 @@
-# 🌱 禁酒トラッカー
+# 🌱 禁酒トラッカー / Sober Tracker
 
 禁酒の継続をサポートするモバイルファーストのWebアプリ（PWA）です。サーバー不要で、データはすべて端末のブラウザ（localStorage）に保存されます。
+
+> **English:** A mobile-first sobriety tracker PWA — streaks, savings, mood logs, SOS breathing, badges and a bit of daily tarot fun. **Fully bilingual (日本語 / English)** with automatic language detection, currency selection (¥ $ € £ ₩), no server, and all data stored on your device. Just open `index.html`, or install it to your home screen.
+
+## 🌏 多言語対応
+
+- 端末の言語から**日本語 / 英語を自動判定**（設定でいつでも切り替え可能）
+- AIアドバイス・タロット・すべてのUIが両言語に完全対応
+- **通貨選択**（JPY / USD / EUR / GBP / KRW）— 節約額・ごほうび貯金に反映
+- 言語を切り替えても同じ日のタロット結果は同じ（決定的生成）
 
 ## 主な機能
 
@@ -38,6 +47,14 @@
 - **バイブレーション** — 記録・達成時に軽い振動でフィードバック（対応端末のみ）
 - **アクセシビリティ** — キーボード操作・スクリーンリーダー・フォーカス管理・視差軽減設定に配慮
 
+## 🌐 全世界に公開する（GitHub Pages）
+
+このリポジトリはそのまま GitHub Pages で公開できる構成です（`.nojekyll` 済み・全パス相対）。
+
+1. GitHub の **Settings → General → Danger Zone → Change repository visibility** でリポジトリを **Public** にする（無料プランのPagesはPublicが必要）
+2. **Settings → Pages → Build and deployment** で Source: **Deploy from a branch**、Branch: `claude/sobriety-tracking-app-0a6kis` / `/ (root)` を選んで **Save**
+3. 1〜2分後に `https://<ユーザー名>.github.io/kinnsyu/` で全世界からアクセス可能に。スマホのChrome/Safariで開いて「ホーム画面に追加」すればアプリとして使えます
+
 ## 使い方
 
 1. `index.html` をブラウザで開くだけです（初回はオンボーディングが起動します）。
@@ -68,6 +85,7 @@ node tests/smoke.cjs   # 全機能のE2Eスモークテスト（要 Playwright +
 | `index.html` | 画面の構造（ホーム/記録/統計/達成＋各シート） |
 | `styles.css` | デザインシステム（ライト/ダーク対応） |
 | `app.js` | アプリ本体（状態管理・描画・機能） |
+| `i18n.js` | 多言語辞書と翻訳エンジン（日本語/英語） |
 | `util.js` | 共有ユーティリティ（日付・乱数・DOM） |
 | `advisor.js` | AIアドバイス生成エンジン |
 | `tarot.js` | タロット占いエンジン |

@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="description" content="禁酒の継続をサポートするアプリ。継続日数・節約・肝臓の回復イメージ・毎日の記録・タロット占い。データは端末内にのみ保存されます。" />
+<meta name="description" content="禁酒の継続をサポートするアプリ。継続日数・節約・肝臓の回復イメージ・毎日の記録・タロット占い。データは端末内にのみ保存されます。 / A sobriety tracker: streaks, savings, daily logs, SOS breathing and a bit of tarot fun. All data stays on your device." />
+<meta property="og:title" content="禁酒トラッカー / Sober Tracker" />
+<meta property="og:description" content="禁酒の継続を楽しく記録できる無料アプリ。データは端末内のみ。 / Track your alcohol-free days, savings and mood. Free, private, installable." />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="icon-512.png" />
+<meta name="twitter:card" content="summary" />
 <meta name="theme-color" content="#0f766e" media="(prefers-color-scheme: light)" />
 <meta name="theme-color" content="#0c1222" media="(prefers-color-scheme: dark)" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -18,8 +23,8 @@
 <body>
 <div id="app">
   <header class="app-header">
-    <h1>🌱 禁酒トラッカー</h1>
-    <button id="settingsBtn" class="icon-btn" aria-label="設定を開く">⚙️</button>
+    <h1 data-i18n="app.title">🌱 禁酒トラッカー</h1>
+    <button id="settingsBtn" class="icon-btn" data-i18n-aria="aria.settings" aria-label="設定を開く">⚙️</button>
   </header>
 
   <main id="main">
@@ -40,8 +45,8 @@
               <circle class="ring-fg" id="ringFg" cx="100" cy="100" r="86" />
             </svg>
             <div class="ring-center">
-              <span class="ring-label">禁酒継続</span>
-              <span class="ring-days"><b id="daysCount">0</b><i>日</i></span>
+              <span class="ring-label" data-i18n="ring.label">禁酒継続</span>
+              <span class="ring-days"><b id="daysCount">0</b><i data-i18n="ring.dayUnit">日</i></span>
               <span class="ring-sub" id="ringSub"></span>
             </div>
           </div>
@@ -67,24 +72,24 @@
               </g>
             </svg>
             <p class="liver-caption" id="liverCaption"></p>
-            <p class="liver-note">※イメージ図</p>
+            <p class="liver-note" data-i18n="liver.note">※イメージ図</p>
           </div>
         </div>
         <div class="hero-chips">
-          <span class="chip">連続 <b id="streakNum">0</b>日</span>
-          <span class="chip">通算 <b id="totalNum">0</b>日</span>
-          <span class="chip">🏆 最長 <b id="bestNum">0</b>日</span>
+          <span class="chip" id="chipStreak"></span>
+          <span class="chip" id="chipTotal"></span>
+          <span class="chip" id="chipBest"></span>
         </div>
         <div class="week-strip" id="weekStrip" aria-label="直近7日間の記録"></div>
         <p class="hero-start" id="counterSub"></p>
       </div>
 
-      <button id="recordTodayBtn" class="btn btn-primary btn-lg">✅ 今日を記録する</button>
-      <button id="relapseBtn" class="btn-quiet">飲んでしまった日を記録する…</button>
+      <button id="recordTodayBtn" class="btn btn-primary btn-lg" data-i18n="btn.recordToday">✅ 今日を記録する</button>
+      <button id="relapseBtn" class="btn-quiet" data-i18n="btn.relapse">飲んでしまった日を記録する…</button>
 
       <div class="card goal-card" id="goalCard">
         <div class="goal-head">
-          <span class="goal-title">🎯 目標</span>
+          <span class="goal-title" data-i18n="goal.title">🎯 目標</span>
           <span class="goal-count" id="goalCount"></span>
         </div>
         <div class="progress"><i id="goalBar"></i></div>
@@ -93,7 +98,7 @@
 
       <div class="card goal-card" id="rewardCard" hidden>
         <div class="goal-head">
-          <span class="goal-title">🎁 ごほうび貯金</span>
+          <span class="goal-title" data-i18n="reward.title">🎁 ごほうび貯金</span>
           <span class="goal-count" id="rewardCount"></span>
         </div>
         <div class="progress"><i id="rewardBar"></i></div>
@@ -104,22 +109,22 @@
         <div class="card stat">
           <span class="stat-emoji">💰</span>
           <span class="stat-num" id="moneySaved">¥0</span>
-          <span class="stat-cap">通算の節約金額</span>
+          <span class="stat-cap" data-i18n="stat.money">通算の節約金額</span>
         </div>
         <div class="card stat">
           <span class="stat-emoji">🔥</span>
           <span class="stat-num" id="calSaved">0</span>
-          <span class="stat-cap">通算の削減kcal</span>
+          <span class="stat-cap" data-i18n="stat.cal">通算の削減kcal</span>
         </div>
         <div class="card stat">
           <span class="stat-emoji">🍺</span>
           <span class="stat-num" id="drinksAvoided">0</span>
-          <span class="stat-cap">飲まなかった杯数</span>
+          <span class="stat-cap" data-i18n="stat.drinks">飲まなかった杯数</span>
         </div>
         <div class="card stat">
           <span class="stat-emoji">✨</span>
           <span class="stat-num" id="soberRate">100%</span>
-          <span class="stat-cap">開始からの禁酒率</span>
+          <span class="stat-cap" data-i18n="stat.rate">開始からの禁酒率</span>
         </div>
       </div>
 
@@ -127,25 +132,25 @@
         <div class="advice-head">
           <span class="advice-avatar">🤖</span>
           <div class="advice-titles">
-            <span class="advice-title">AIの今日のアドバイス</span>
-            <span class="advice-sub">継続日数と年齢に合わせて</span>
+            <span class="advice-title" data-i18n="advice.title">AIの今日のアドバイス</span>
+            <span class="advice-sub" data-i18n="advice.sub">継続日数と年齢に合わせて</span>
           </div>
-          <button id="adviceRefresh" class="advice-refresh" aria-label="別のアドバイスに切り替え">🔄</button>
+          <button id="adviceRefresh" class="advice-refresh" data-i18n-aria="advice.refreshAria" aria-label="別のアドバイスに切り替え">🔄</button>
         </div>
         <p class="advice-body" id="adviceBody"></p>
-        <p class="advice-note">※一般的な健康情報です。強い離脱症状があるときは医療機関にご相談ください。</p>
+        <p class="advice-note" data-i18n="advice.note">※一般的な健康情報です。強い離脱症状があるときは医療機関にご相談ください。</p>
       </div>
 
       <div class="card fortune-card">
         <div class="fortune-head">
-          <span class="fortune-title">🔮 今日のタロット</span>
+          <span class="fortune-title" data-i18n="fortune.title">🔮 今日のタロット</span>
           <span class="fortune-date" id="fortuneDate"></span>
         </div>
         <div class="flip-stage">
-          <button class="flip" id="tarotFlip" aria-label="今日のカードをめくる">
+          <button class="flip" id="tarotFlip" data-i18n-aria="fortune.flipAria" aria-label="今日のカードをめくる">
             <span class="flip-face flip-back">
               <span class="flip-back-star">✦</span>
-              <span class="flip-back-text">タップしてめくる</span>
+              <span class="flip-back-text" data-i18n="fortune.flip">タップしてめくる</span>
             </span>
             <span class="flip-face flip-front">
               <span class="tarot" id="tarotVisual">
@@ -164,18 +169,18 @@
           <p class="fortune-advice" id="fortuneAdvice"></p>
           <div class="fortune-lucky" id="fortuneLucky"></div>
         </div>
-        <p class="fortune-note">※占いは気分を上げるお楽しみ要素です</p>
+        <p class="fortune-note" data-i18n="fortune.note">※占いは気分を上げるお楽しみ要素です</p>
       </div>
     </section>
 
     <!-- ═══════════ 記録 ═══════════ -->
     <section id="log" class="view" role="tabpanel" aria-label="記録">
       <div class="card">
-        <h2>今日の記録</h2>
+        <h2 data-i18n="log.today">今日の記録</h2>
         <div id="todaySummary"></div>
       </div>
       <div class="card">
-        <h2>これまでの記録</h2>
+        <h2 data-i18n="log.history">これまでの記録</h2>
         <div id="logList" class="log-list"></div>
       </div>
     </section>
@@ -183,30 +188,30 @@
     <!-- ═══════════ 統計 ═══════════ -->
     <section id="stats" class="view" role="tabpanel" aria-label="統計">
       <div class="card">
-        <h2>カレンダー</h2>
+        <h2 data-i18n="stats.calendar">カレンダー</h2>
         <div class="cal-head">
-          <button id="calPrev" class="icon-btn" aria-label="前の月">‹</button>
+          <button id="calPrev" class="icon-btn" data-i18n-aria="cal.prev" aria-label="前の月">‹</button>
           <span id="calTitle"></span>
-          <button id="calNext" class="icon-btn" aria-label="次の月">›</button>
+          <button id="calNext" class="icon-btn" data-i18n-aria="cal.next" aria-label="次の月">›</button>
         </div>
         <div id="calendar" class="calendar"></div>
         <div class="cal-legend">
-          <span><i class="dot sober"></i>禁酒</span>
-          <span><i class="dot relapse"></i>飲酒</span>
-          <span><i class="dot today"></i>今日</span>
+          <span><i class="dot sober"></i><span data-i18n="legend.sober">禁酒</span></span>
+          <span><i class="dot relapse"></i><span data-i18n="legend.relapse">飲酒</span></span>
+          <span><i class="dot today"></i><span data-i18n="legend.today">今日</span></span>
         </div>
         <div id="dayDetail" class="day-detail" hidden></div>
       </div>
       <div class="card">
-        <h2>気分の推移（直近14日）</h2>
+        <h2 data-i18n="stats.mood">気分の推移（直近14日）</h2>
         <canvas id="moodChart" height="140"></canvas>
       </div>
       <div class="card">
-        <h2>飲みたい気持ちの推移（直近14日）</h2>
+        <h2 data-i18n="stats.craving">飲みたい気持ちの推移（直近14日）</h2>
         <canvas id="cravingChart" height="140"></canvas>
       </div>
       <div class="card" id="triggerCard" hidden>
-        <h2>よくあるきっかけ</h2>
+        <h2 data-i18n="stats.triggers">よくあるきっかけ</h2>
         <div id="triggerInsight" class="trigger-insight"></div>
       </div>
     </section>
@@ -214,25 +219,25 @@
     <!-- ═══════════ 達成 ═══════════ -->
     <section id="badges" class="view" role="tabpanel" aria-label="達成">
       <div class="card">
-        <h2>マイルストーン</h2>
+        <h2 data-i18n="badges.title">マイルストーン</h2>
         <div id="badgeGrid" class="badge-grid"></div>
       </div>
       <div class="card">
-        <h2>シェア</h2>
-        <p class="hint" style="margin:0 0 12px">がんばりを共有してモチベーションに。日数と節約額だけで、個人情報は含まれません。</p>
-        <button id="shareBtn" class="btn btn-primary" style="width:100%">📣 実績をシェアする</button>
+        <h2 data-i18n="badges.share">シェア</h2>
+        <p class="hint" style="margin:0 0 12px" data-i18n="badges.shareHint">がんばりを共有してモチベーションに。日数と節約額だけで、個人情報は含まれません。</p>
+        <button id="shareBtn" class="btn btn-primary" style="width:100%" data-i18n="badges.shareBtn">📣 実績をシェアする</button>
       </div>
     </section>
   </main>
 
   <nav class="bottom-nav" role="tablist" aria-label="メインナビゲーション">
-    <button class="nav-item active" data-tab="home" role="tab" aria-selected="true"><span class="nav-emoji">🏠</span><span class="nav-label">ホーム</span></button>
-    <button class="nav-item" data-tab="log" role="tab" aria-selected="false"><span class="nav-emoji">✍️</span><span class="nav-label">記録</span></button>
-    <button class="nav-item" data-tab="stats" role="tab" aria-selected="false"><span class="nav-emoji">📊</span><span class="nav-label">統計</span></button>
-    <button class="nav-item" data-tab="badges" role="tab" aria-selected="false"><span class="nav-emoji">🏆</span><span class="nav-label">達成</span></button>
+    <button class="nav-item active" data-tab="home" role="tab" aria-selected="true"><span class="nav-emoji">🏠</span><span class="nav-label" data-i18n="nav.home">ホーム</span></button>
+    <button class="nav-item" data-tab="log" role="tab" aria-selected="false"><span class="nav-emoji">✍️</span><span class="nav-label" data-i18n="nav.log">記録</span></button>
+    <button class="nav-item" data-tab="stats" role="tab" aria-selected="false"><span class="nav-emoji">📊</span><span class="nav-label" data-i18n="nav.stats">統計</span></button>
+    <button class="nav-item" data-tab="badges" role="tab" aria-selected="false"><span class="nav-emoji">🏆</span><span class="nav-label" data-i18n="nav.badges">達成</span></button>
   </nav>
 
-  <button id="sosBtn" class="sos-fab" aria-label="飲みたい気持ちを乗り切る">🆘 飲みたい</button>
+  <button id="sosBtn" class="sos-fab" data-i18n="sos.fab" aria-label="SOS">🆘 飲みたい</button>
 </div>
 
 <!-- ═══════════ 記録シート ═══════════ -->
@@ -240,32 +245,32 @@
   <div class="sheet-panel">
     <div class="sheet-grip"></div>
     <h2 id="recordDateTitle">今日の記録</h2>
-    <p class="field-label">今日の気分は？</p>
+    <p class="field-label" data-i18n="record.mood">今日の気分は？</p>
     <div class="mood-row" id="moodRow">
-      <button class="mood" data-mood="5" aria-label="とても良い">😄</button>
-      <button class="mood" data-mood="4" aria-label="良い">🙂</button>
-      <button class="mood" data-mood="3" aria-label="ふつう">😐</button>
-      <button class="mood" data-mood="2" aria-label="少しつらい">😟</button>
-      <button class="mood" data-mood="1" aria-label="つらい">😣</button>
+      <button class="mood" data-mood="5" data-i18n-aria="mood.5" aria-label="とても良い">😄</button>
+      <button class="mood" data-mood="4" data-i18n-aria="mood.4" aria-label="良い">🙂</button>
+      <button class="mood" data-mood="3" data-i18n-aria="mood.3" aria-label="ふつう">😐</button>
+      <button class="mood" data-mood="2" data-i18n-aria="mood.2" aria-label="少しつらい">😟</button>
+      <button class="mood" data-mood="1" data-i18n-aria="mood.1" aria-label="つらい">😣</button>
     </div>
     <label class="field">
-      <span>飲みたい気持ち（渇望）</span>
+      <span data-i18n="record.craving">飲みたい気持ち（渇望）</span>
       <input type="range" id="craving" min="0" max="10" value="0" />
       <output id="cravingOut">0 / 10</output>
     </label>
-    <p class="field-label">きっかけがあれば（複数OK）</p>
+    <p class="field-label" data-i18n="record.triggers">きっかけがあれば（複数OK）</p>
     <div class="trigger-row" id="triggerRow">
-      <button class="trigger" data-trigger="ストレス">😤 ストレス</button>
-      <button class="trigger" data-trigger="付き合い">🍻 付き合い</button>
-      <button class="trigger" data-trigger="退屈">🥱 退屈</button>
-      <button class="trigger" data-trigger="疲れ">😮‍💨 疲れ</button>
-      <button class="trigger" data-trigger="お祝い">🎉 お祝い</button>
-      <button class="trigger" data-trigger="習慣">🕐 習慣</button>
+      <button class="trigger" data-trigger="ストレス" data-i18n="trigger.ストレス">😤 ストレス</button>
+      <button class="trigger" data-trigger="付き合い" data-i18n="trigger.付き合い">🍻 付き合い</button>
+      <button class="trigger" data-trigger="退屈" data-i18n="trigger.退屈">🥱 退屈</button>
+      <button class="trigger" data-trigger="疲れ" data-i18n="trigger.疲れ">😮‍💨 疲れ</button>
+      <button class="trigger" data-trigger="お祝い" data-i18n="trigger.お祝い">🎉 お祝い</button>
+      <button class="trigger" data-trigger="習慣" data-i18n="trigger.習慣">🕐 習慣</button>
     </div>
-    <textarea id="note" placeholder="今日の気づき・工夫など…"></textarea>
+    <textarea id="note" data-i18n-ph="record.notePh" placeholder="今日の気づき・工夫など…"></textarea>
     <div class="sheet-actions">
-      <button id="saveLogBtn" class="btn btn-primary">保存する</button>
-      <button id="closeRecord" class="btn">閉じる</button>
+      <button id="saveLogBtn" class="btn btn-primary" data-i18n="record.save">保存する</button>
+      <button id="closeRecord" class="btn" data-i18n="record.close">閉じる</button>
     </div>
   </div>
 </div>
@@ -274,20 +279,20 @@
 <div id="relapseSheet" class="sheet hidden" role="dialog" aria-modal="true" aria-label="飲んでしまった日の記録">
   <div class="sheet-panel">
     <div class="sheet-grip"></div>
-    <h2>飲んでしまった日を記録</h2>
-    <p class="relapse-copy">大丈夫、失敗ではなく学びです。<b>通算の記録と節約額は消えません。</b>連続日数だけがリセットされ、また今日から積み上がります。</p>
-    <p class="field-label">いつ飲みましたか？</p>
+    <h2 data-i18n="relapse.title">飲んでしまった日を記録</h2>
+    <p class="relapse-copy" data-i18n-html="relapse.copy">大丈夫、失敗ではなく学びです。<b>通算の記録と節約額は消えません。</b>連続日数だけがリセットされ、また今日から積み上がります。</p>
+    <p class="field-label" data-i18n="relapse.when">いつ飲みましたか？</p>
     <div class="seg" id="relapseDaySeg">
-      <button class="seg-btn active" data-day="0">今日</button>
-      <button class="seg-btn" data-day="1">昨日</button>
+      <button class="seg-btn active" data-day="0" data-i18n="relapse.today">今日</button>
+      <button class="seg-btn" data-day="1" data-i18n="relapse.yesterday">昨日</button>
     </div>
     <label class="field">
-      <span>きっかけをメモしておくと、次に活かせます（任意）</span>
-      <textarea id="relapseNote" placeholder="例: 仕事の飲み会で断れなかった"></textarea>
+      <span data-i18n="relapse.noteLabel">きっかけをメモしておくと、次に活かせます（任意）</span>
+      <textarea id="relapseNote" data-i18n-ph="relapse.notePh" placeholder="例: 仕事の飲み会で断れなかった"></textarea>
     </label>
     <div class="sheet-actions">
-      <button id="saveRelapseBtn" class="btn btn-danger-solid">記録して再スタート</button>
-      <button id="closeRelapse" class="btn">やめる</button>
+      <button id="saveRelapseBtn" class="btn btn-danger-solid" data-i18n="relapse.save">記録して再スタート</button>
+      <button id="closeRelapse" class="btn" data-i18n="relapse.cancel">やめる</button>
     </div>
   </div>
 </div>
@@ -296,58 +301,74 @@
 <div id="settingsSheet" class="sheet hidden" role="dialog" aria-modal="true" aria-label="設定">
   <div class="sheet-panel sheet-tall">
     <div class="sheet-grip"></div>
-    <h2>設定</h2>
+    <h2 data-i18n="set.title">設定</h2>
 
-    <p class="sec-title">表示</p>
-    <div class="seg" id="themeSeg">
-      <button class="seg-btn" data-theme="auto">自動</button>
-      <button class="seg-btn" data-theme="light">ライト</button>
-      <button class="seg-btn" data-theme="dark">ダーク</button>
+    <p class="sec-title" data-i18n="set.lang">言語 / Language</p>
+    <div class="seg" id="langSeg">
+      <button class="seg-btn" data-lang="auto" data-i18n="lang.auto">自動</button>
+      <button class="seg-btn" data-lang="ja">日本語</button>
+      <button class="seg-btn" data-lang="en">English</button>
     </div>
 
-    <p class="sec-title">基本</p>
-    <label class="field"><span>禁酒を始めた日</span><input type="date" id="startDate" /></label>
-    <label class="field"><span>目標日数（日）</span><input type="number" id="goalDays" min="1" step="1" value="30" /></label>
+    <p class="sec-title" data-i18n="set.display">表示</p>
+    <div class="seg" id="themeSeg">
+      <button class="seg-btn" data-theme="auto" data-i18n="theme.auto">自動</button>
+      <button class="seg-btn" data-theme="light" data-i18n="theme.light">ライト</button>
+      <button class="seg-btn" data-theme="dark" data-i18n="theme.dark">ダーク</button>
+    </div>
 
-    <p class="sec-title">飲酒習慣（節約の計算に使用）</p>
-    <label class="field"><span>1日あたりの平均飲酒量（杯）</span><input type="number" id="drinksPerDay" min="0" step="0.5" value="3" /></label>
-    <label class="field"><span>1杯あたりの金額（円）</span><input type="number" id="pricePerDrink" min="0" step="10" value="500" /></label>
-    <label class="field"><span>1杯あたりのカロリー（kcal）</span><input type="number" id="calPerDrink" min="0" step="10" value="150" /></label>
+    <p class="sec-title" data-i18n="set.basic">基本</p>
+    <label class="field"><span data-i18n="set.startDate">禁酒を始めた日</span><input type="date" id="startDate" /></label>
+    <label class="field"><span data-i18n="set.goalDays">目標日数（日）</span><input type="number" id="goalDays" min="1" step="1" value="30" /></label>
 
-    <p class="sec-title">ごほうび（任意）</p>
-    <label class="field"><span>節約したお金で欲しいもの</span><input type="text" id="rewardName" placeholder="例: 新しいイヤホン" maxlength="30" /></label>
-    <label class="field"><span>その金額（円）</span><input type="number" id="rewardPrice" min="0" step="100" placeholder="例: 15000" /></label>
-    <p class="hint">設定するとホームに「ごほうび貯金」の進み具合が表示されます。</p>
+    <p class="sec-title" data-i18n="set.habit">飲酒習慣（節約の計算に使用）</p>
+    <label class="field"><span data-i18n="set.currency">通貨</span>
+      <select id="currency">
+        <option value="JPY">¥ 円 (JPY)</option>
+        <option value="USD">$ US Dollar (USD)</option>
+        <option value="EUR">€ Euro (EUR)</option>
+        <option value="GBP">£ Pound (GBP)</option>
+        <option value="KRW">₩ Won (KRW)</option>
+      </select>
+    </label>
+    <label class="field"><span data-i18n="set.drinksPerDay">1日あたりの平均飲酒量（杯）</span><input type="number" id="drinksPerDay" min="0" step="0.5" value="3" /></label>
+    <label class="field"><span data-i18n="set.pricePerDrink">1杯あたりの金額</span><input type="number" id="pricePerDrink" min="0" step="1" value="500" /></label>
+    <label class="field"><span data-i18n="set.calPerDrink">1杯あたりのカロリー（kcal）</span><input type="number" id="calPerDrink" min="0" step="10" value="150" /></label>
 
-    <p class="sec-title">あなた</p>
-    <label class="field"><span>生年月日（占い・アドバイスに使用）</span><input type="date" id="birthDate" /></label>
-    <label class="field"><span>禁酒する理由（1行に1つ・SOS時に表示されます）</span><textarea id="reasonsInput" placeholder="例: 家族との時間を大切にしたい&#10;例: 朝スッキリ起きたい"></textarea></label>
+    <p class="sec-title" data-i18n="set.reward">ごほうび（任意）</p>
+    <label class="field"><span data-i18n="set.rewardName">節約したお金で欲しいもの</span><input type="text" id="rewardName" data-i18n-ph="set.rewardNamePh" placeholder="例: 新しいイヤホン" maxlength="30" /></label>
+    <label class="field"><span data-i18n="set.rewardPrice">その金額</span><input type="number" id="rewardPrice" min="0" step="1" data-i18n-ph="set.rewardPricePh" placeholder="例: 15000" /></label>
+    <p class="hint" data-i18n="set.rewardHint">設定するとホームに「ごほうび貯金」の進み具合が表示されます。</p>
 
-    <p class="sec-title">通知</p>
-    <label class="field toggle-field"><span>毎日のリマインダー通知</span><input type="checkbox" id="reminderOn" /></label>
-    <label class="field" id="reminderTimeField"><span>通知する時刻</span><input type="time" id="reminderTime" value="21:00" /></label>
+    <p class="sec-title" data-i18n="set.you">あなた</p>
+    <label class="field"><span data-i18n="set.birth">生年月日（占い・アドバイスに使用）</span><input type="date" id="birthDate" /></label>
+    <label class="field"><span data-i18n="set.reasons">禁酒する理由（1行に1つ・SOS時に表示されます）</span><textarea id="reasonsInput" data-i18n-ph="set.reasonsPh" placeholder="例: 家族との時間を大切にしたい&#10;例: 朝スッキリ起きたい"></textarea></label>
+
+    <p class="sec-title" data-i18n="set.notif">通知</p>
+    <label class="field toggle-field"><span data-i18n="set.reminderOn">毎日のリマインダー通知</span><input type="checkbox" id="reminderOn" /></label>
+    <label class="field" id="reminderTimeField"><span data-i18n="set.reminderTime">通知する時刻</span><input type="time" id="reminderTime" value="21:00" /></label>
     <p class="hint" id="reminderHint"></p>
 
-    <p class="sec-title">データ</p>
+    <p class="sec-title" data-i18n="set.data">データ</p>
     <div class="data-actions">
-      <button id="exportBtn" class="btn">📤 バックアップを保存</button>
-      <label class="btn file-btn">📥 バックアップを読み込み<input type="file" id="importFile" accept=".json,application/json" hidden /></label>
+      <button id="exportBtn" class="btn" data-i18n="set.export">📤 バックアップを保存</button>
+      <label class="btn file-btn"><span data-i18n="set.import">📥 バックアップを読み込み</span><input type="file" id="importFile" accept=".json,application/json" hidden /></label>
     </div>
-    <p class="hint">記録はこの端末のブラウザ内にのみ保存されます。機種変更やブラウザのデータ削除に備えて、ときどきバックアップを保存してください。</p>
+    <p class="hint" data-i18n="set.dataHint">記録はこの端末のブラウザ内にのみ保存されます。機種変更やブラウザのデータ削除に備えて、ときどきバックアップを保存してください。</p>
 
     <div class="sheet-actions sticky-actions">
-      <button id="saveSettings" class="btn btn-primary">保存</button>
-      <button id="closeSettings" class="btn">閉じる</button>
+      <button id="saveSettings" class="btn btn-primary" data-i18n="set.save">保存</button>
+      <button id="closeSettings" class="btn" data-i18n="set.close">閉じる</button>
     </div>
-    <button id="resetAll" class="btn-link-danger">すべてのデータを削除</button>
+    <button id="resetAll" class="btn-link-danger" data-i18n="set.reset">すべてのデータを削除</button>
   </div>
 </div>
 
 <!-- ═══════════ SOS（深呼吸） ═══════════ -->
 <div id="sosOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-label="飲みたい気持ちを乗り切る">
   <div class="sos-box">
-    <h2>この波は、必ず引いていきます 🌊</h2>
-    <p class="sos-sub">60秒だけ、呼吸に集中してみましょう</p>
+    <h2 data-i18n="sos.title">この波は、必ず引いていきます 🌊</h2>
+    <p class="sos-sub" data-i18n="sos.sub">60秒だけ、呼吸に集中してみましょう</p>
     <div class="breath-stage">
       <div class="breath-circle" id="breathCircle"></div>
       <div class="breath-center">
@@ -357,8 +378,8 @@
     </div>
     <div id="sosReasons" class="sos-reasons"></div>
     <div class="sheet-actions">
-      <button id="sosStart" class="btn btn-primary">深呼吸をはじめる</button>
-      <button id="sosClose" class="btn">閉じる</button>
+      <button id="sosStart" class="btn btn-primary" data-i18n="sos.start">深呼吸をはじめる</button>
+      <button id="sosClose" class="btn" data-i18n="sos.close">閉じる</button>
     </div>
   </div>
 </div>
@@ -368,40 +389,43 @@
   <div class="ob-box">
     <div class="ob-step" data-step="1">
       <div class="ob-emoji">🌱</div>
-      <h2>ようこそ！</h2>
-      <p class="ob-lead">禁酒の旅を、一緒に記録していきましょう。<br>まず2つだけ教えてください。</p>
-      <label class="field"><span>禁酒を始めた日（今日からでOK）</span><input type="date" id="obStartDate" /></label>
-      <p class="field-label">禁酒する理由は？（あとで変更できます）</p>
+      <h2 data-i18n="ob.welcome">ようこそ！</h2>
+      <p class="ob-lead" data-i18n="ob.lead1">禁酒の旅を、一緒に記録していきましょう。
+まず2つだけ教えてください。</p>
+      <label class="field"><span data-i18n="ob.startDate">禁酒を始めた日（今日からでOK）</span><input type="date" id="obStartDate" /></label>
+      <p class="field-label" data-i18n="ob.why">禁酒する理由は？（あとで変更できます）</p>
       <div class="trigger-row" id="reasonChips">
-        <button class="trigger" data-reason="健康のため">💪 健康のため</button>
-        <button class="trigger" data-reason="家族・大切な人のため">👨‍👩‍👧 家族のため</button>
-        <button class="trigger" data-reason="お金を貯めたい">💰 お金を貯めたい</button>
-        <button class="trigger" data-reason="よく眠りたい">😴 よく眠りたい</button>
-        <button class="trigger" data-reason="仕事の効率を上げたい">📈 仕事のため</button>
-        <button class="trigger" data-reason="自分との約束">🤝 自分との約束</button>
+        <button class="trigger" data-reason="健康のため" data-i18n="reason.健康のため">💪 健康のため</button>
+        <button class="trigger" data-reason="家族・大切な人のため" data-i18n="reason.家族・大切な人のため">👨‍👩‍👧 家族のため</button>
+        <button class="trigger" data-reason="お金を貯めたい" data-i18n="reason.お金を貯めたい">💰 お金を貯めたい</button>
+        <button class="trigger" data-reason="よく眠りたい" data-i18n="reason.よく眠りたい">😴 よく眠りたい</button>
+        <button class="trigger" data-reason="仕事の効率を上げたい" data-i18n="reason.仕事の効率を上げたい">📈 仕事のため</button>
+        <button class="trigger" data-reason="自分との約束" data-i18n="reason.自分との約束">🤝 自分との約束</button>
       </div>
-      <button id="obNext1" class="btn btn-primary btn-lg">次へ</button>
+      <button id="obNext1" class="btn btn-primary btn-lg" data-i18n="ob.next">次へ</button>
     </div>
     <div class="ob-step" data-step="2" hidden>
       <div class="ob-emoji">🍺</div>
-      <h2>これまでの飲酒習慣</h2>
-      <p class="ob-lead">節約できた金額の計算に使います。<br>だいたいで大丈夫です。</p>
-      <label class="field"><span>1日あたりの平均飲酒量（杯）</span><input type="number" id="obDrinks" min="0" step="0.5" value="3" /></label>
-      <label class="field"><span>1杯あたりの金額（円）</span><input type="number" id="obPrice" min="0" step="10" value="500" /></label>
+      <h2 data-i18n="ob.habit">これまでの飲酒習慣</h2>
+      <p class="ob-lead" data-i18n="ob.lead2">節約できた金額の計算に使います。
+だいたいで大丈夫です。</p>
+      <label class="field"><span data-i18n="set.drinksPerDay">1日あたりの平均飲酒量（杯）</span><input type="number" id="obDrinks" min="0" step="0.5" value="3" /></label>
+      <label class="field"><span data-i18n="set.pricePerDrink">1杯あたりの金額</span><input type="number" id="obPrice" min="0" step="1" value="500" /></label>
       <div class="sheet-actions">
-        <button id="obNext2" class="btn btn-primary">次へ</button>
-        <button id="obBack2" class="btn">戻る</button>
+        <button id="obNext2" class="btn btn-primary" data-i18n="ob.next">次へ</button>
+        <button id="obBack2" class="btn" data-i18n="ob.back">戻る</button>
       </div>
     </div>
     <div class="ob-step" data-step="3" hidden>
       <div class="ob-emoji">🎯</div>
-      <h2>最初の目標</h2>
-      <p class="ob-lead">まずは無理のない目標から。<br>達成したらいつでも延長できます。</p>
-      <label class="field"><span>目標日数</span><input type="number" id="obGoal" min="1" step="1" value="30" /></label>
-      <label class="field"><span>生年月日（任意・占いとアドバイスに使用）</span><input type="date" id="obBirth" /></label>
+      <h2 data-i18n="ob.goalTitle">最初の目標</h2>
+      <p class="ob-lead" data-i18n="ob.lead3">まずは無理のない目標から。
+達成したらいつでも延長できます。</p>
+      <label class="field"><span data-i18n="ob.goalDays">目標日数</span><input type="number" id="obGoal" min="1" step="1" value="30" /></label>
+      <label class="field"><span data-i18n="ob.birth">生年月日（任意・占いとアドバイスに使用）</span><input type="date" id="obBirth" /></label>
       <div class="sheet-actions">
-        <button id="obFinish" class="btn btn-primary">はじめる 🎉</button>
-        <button id="obBack3" class="btn">戻る</button>
+        <button id="obFinish" class="btn btn-primary" data-i18n="ob.finish">はじめる 🎉</button>
+        <button id="obBack3" class="btn" data-i18n="ob.back">戻る</button>
       </div>
     </div>
     <div class="ob-dots" id="obDots"><i class="on"></i><i></i><i></i></div>
@@ -410,6 +434,7 @@
 
 <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 
+<script src="i18n.js"></script>
 <script src="util.js"></script>
 <script src="tarot.js"></script>
 <script src="advisor.js"></script>

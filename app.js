@@ -1,6 +1,7 @@
 'use strict';
 
 const { $, $$, todayStr, parseDate, diffDays, addDays, fmtDate, escapeHtml, pad, DAY } = Util;
+const t = (k, v) => I18N.t(k, v);
 
 /* ═══════════════ 状態 ═══════════════ */
 const STORE_KEY = 'kinshu_v1';
@@ -10,6 +11,8 @@ const defaultState = {
   version: STATE_VERSION,
   onboarded: false,
   theme: 'auto',
+  lang: 'auto',
+  currency: '',             // '' = 言語から自動（ja→JPY / それ以外→USD）
   startDate: todayStr(),
   birthDate: '',
   drinksPerDay: 3,
@@ -55,7 +58,7 @@ function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
 
 /* 別タブでの変更を反映 */
 window.addEventListener('storage', e => {
-  if (e.key === STORE_KEY) { state = load(); updateDerived(); render(); }
+  if (e.key === STORE_KEY) { state = load(); applyTheme(); applyLang(); updateDerived(); render(); }
 });
 
 /* ═══════════════ 派生値の計算 ═══════════════ */
@@ -78,16 +81,21 @@ function totalSoberDays() { return Math.max(0, elapsedDays() - relapseCount()); 
 function isRelapseDay(ds) { return state.relapses.includes(ds); }
 
 const BADGES = [
-  { days: 1,   emoji: '🌱', title: '1日目',  sub: '最初の一歩' },
-  { days: 3,   emoji: '🍃', title: '3日',    sub: '山を越えた' },
-  { days: 7,   emoji: '⭐', title: '1週間',  sub: '習慣の芽' },
-  { days: 14,  emoji: '💪', title: '2週間',  sub: '体が軽い' },
-  { days: 30,  emoji: '🏅', title: '30日',   sub: '1ヶ月達成' },
-  { days: 60,  emoji: '🎖️', title: '60日',   sub: '2ヶ月' },
-  { days: 90,  emoji: '🏆', title: '90日',   sub: '3ヶ月の壁' },
-  { days: 180, emoji: '💎', title: '180日',  sub: 'ハーフイヤー' },
-  { days: 365, emoji: '👑', title: '1年',    sub: '記念すべき1年' },
+  { days: 1,   emoji: '🌱' }, { days: 3,   emoji: '🍃' }, { days: 7,   emoji: '⭐' },
+  { days: 14,  emoji: '💪' }, { days: 30,  emoji: '🏅' }, { days: 60,  emoji: '🎖️' },
+  { days: 90,  emoji: '🏆' }, { days: 180, emoji: '💎' }, { days: 365, emoji: '👑' },
 ];
+const badgeTitle = b => t('badge.d' + b.days);
+const badgeSub = b => t('badge.d' + b.days + 's');
+
+/* ═══════════════ 通貨 ═══════════════ */
+const CURRENCIES = { JPY: '¥', USD: '$', EUR: '€', GBP: '£', KRW: '₩' };
+function curCode() {
+  return CURRENCIES[state.currency] ? state.currency : (I18N.lang() === 'ja' ? 'JPY' : 'USD');
+}
+function fmtMoney(n) {
+  return CURRENCIES[curCode()] + Math.round(n).toLocaleString(I18N.locale());
+}
 
 /* 状態から派生する更新（描画とは分離）。新規達成バッジの配列を返す。 */
 function updateDerived() {
@@ -129,13 +137,9 @@ function render() {
 /* --- あいさつ（時間帯＋日替わりのひとこと） --- */
 function renderGreeting() {
   const h = new Date().getHours();
-  const g = h < 5 ? 'こんばんは 🌙' : h < 11 ? 'おはようございます ☀️' : h < 18 ? 'こんにちは 🌤️' : 'こんばんは 🌙';
-  const msgs = [
-    '今日も自分のペースで。', '小さな一歩が、大きな変化に。', '昨日の自分に、ありがとう。',
-    '焦らず、比べず、一日ずつ。', 'その調子です。', '今日のあなたを応援しています。',
-    '深呼吸を忘れずに。', '休むのも、前に進むうち。',
-  ];
-  $('#greeting').textContent = `${g} ${msgs[Util.hashSeed(todayStr() + 'greet') % msgs.length]}`;
+  const g = t(h < 5 ? 'greet.evening' : h < 11 ? 'greet.morning' : h < 18 ? 'greet.day' : 'greet.evening');
+  const m = t('greet.m' + (Util.hashSeed(todayStr() + 'greet') % 8));
+  $('#greeting').textContent = `${g} ${m}`;
 }
 
 /* --- ヒーロー（リング・肝臓・チップ） --- */
@@ -145,10 +149,11 @@ let lastAnimatedDays = null;
 function renderHero() {
   const days = currentDays();
   animateNumber($('#daysCount'), days);
-  $('#streakNum').textContent = days;
-  $('#totalNum').textContent = totalSoberDays();
-  $('#bestNum').textContent = state.bestStreak;
-  $('#counterSub').textContent = `${fmtDate(streakStart())}から継続中 ・ 開始 ${fmtDate(state.startDate)}`;
+  $('.ring-days i').textContent = t(days === 1 ? 'ring.dayUnit1' : 'ring.dayUnit');
+  $('#chipStreak').innerHTML = t('chip.streak', { n: days });
+  $('#chipTotal').innerHTML = t('chip.total', { n: totalSoberDays() });
+  $('#chipBest').innerHTML = t('chip.best', { n: state.bestStreak });
+  $('#counterSub').textContent = t('hero.since', { d1: fmtDate(streakStart()), d2: fmtDate(state.startDate) });
 
   const next = BADGES.find(b => b.days > days);
   const prev = [...BADGES].reverse().find(b => b.days <= days);
@@ -156,7 +161,9 @@ function renderHero() {
   let pct = 1;
   if (next) pct = Math.max(0.02, (days - base) / (next.days - base));
   $('#ringFg').style.strokeDashoffset = RING_C * (1 - pct);
-  $('#ringSub').textContent = next ? `${next.emoji} ${next.title}まであと${next.days - days}日` : '👑 全バッジ達成！';
+  $('#ringSub').textContent = next
+    ? t('hero.nextBadge', { emoji: next.emoji, title: badgeTitle(next), n: next.days - days })
+    : t('hero.allBadges');
 
   renderLiver(days);
 }
@@ -188,9 +195,7 @@ function renderLiver(days) {
   const body = document.getElementById('liverBody');
   if (body) body.setAttribute('fill', liverColor(d));
   const remain = Math.max(0, LIVER_TARGET_DAYS - d);
-  $('#liverCaption').innerHTML = remain > 0
-    ? `健康な肝臓まで<br><b>あと ${remain} 日</b>`
-    : `健康な状態に到達 🎉`;
+  $('#liverCaption').innerHTML = remain > 0 ? t('liver.remain', { n: remain }) : t('liver.done');
 }
 
 /* --- 直近7日ストリップ（タップでその日の記録へ） --- */
@@ -198,7 +203,7 @@ function renderWeekStrip() {
   const el = $('#weekStrip');
   if (!el) return;
   const today = todayStr();
-  const dows = ['日', '月', '火', '水', '木', '金', '土'];
+  const dows = I18N.dows();
   let html = '';
   for (let i = 6; i >= 0; i--) {
     const ds = addDays(today, -i);
@@ -208,7 +213,7 @@ function renderWeekStrip() {
     const icon = relapse ? '🍺' : log ? (MOOD_EMOJI[log.mood] || '📝') : inRange ? '🌱' : '·';
     const cls = 'ws-day' + (ds === today ? ' today' : '') + (relapse ? ' relapse' : '') +
       (!log && !relapse ? ' faint' : '');
-    html += `<button class="${cls}" data-date="${ds}" aria-label="${fmtDate(ds)}の記録を開く">
+    html += `<button class="${cls}" data-date="${ds}" aria-label="${escapeHtml(t('ws.dayAria', { d: fmtDate(ds) }))}">
       <span class="ws-dow">${dows[parseDate(ds).getDay()]}</span><span class="ws-icon">${icon}</span></button>`;
   }
   el.innerHTML = html;
@@ -223,17 +228,17 @@ function renderGoal() {
   const pct = Math.min(100, Math.round((days / goal) * 100));
   const reached = days >= goal;
   $('#goalCard').classList.toggle('reached', reached);
-  $('#goalCount').innerHTML = `<b>${days}</b> / ${goal} 日`;
+  $('#goalCount').innerHTML = t('goal.count', { d: days, g: goal });
   $('#goalBar').style.width = Math.max(3, pct) + '%';
   $('#goalSub').textContent = reached
-    ? '🎉 目標達成！設定から次の目標を決めて、さらに前へ。'
-    : `達成率 ${pct}% ・ あと ${goal - days} 日`;
+    ? t('goal.reached')
+    : t('goal.progress', { p: pct, n: goal - days });
 
   if (reached && state.goalCelebrated !== goal) {
     state.goalCelebrated = goal;
     save();
     celebrate();
-    toast(`🎉 目標 ${goal}日 を達成しました！`);
+    toast(t('goal.toast', { g: goal }));
   }
 }
 
@@ -251,18 +256,18 @@ function renderReward() {
   const pct = Math.min(100, Math.round((money / price) * 100));
   const reached = money >= price;
   card.classList.toggle('reached', reached);
-  $('#rewardCount').innerHTML = `<b>¥${Math.min(money, price).toLocaleString('ja-JP')}</b> / ¥${price.toLocaleString('ja-JP')}`;
+  $('#rewardCount').innerHTML = `<b>${fmtMoney(Math.min(money, price))}</b> / ${fmtMoney(price)}`;
   $('#rewardBar').style.width = Math.max(3, pct) + '%';
   $('#rewardSub').textContent = reached
-    ? `🎉 「${name}」が買える分、貯まりました！自分にごほうびを。`
-    : `「${name}」まで あと ¥${(price - money).toLocaleString('ja-JP')}（${pct}%）`;
+    ? t('reward.reached', { name })
+    : t('reward.progress', { name, money: fmtMoney(price - money), p: pct });
 
   const key = name + '|' + price;
   if (reached && state.rewardCelebrated !== key) {
     state.rewardCelebrated = key;
     save();
     celebrate();
-    toast(`🎁 ごほうび「${name}」分の節約を達成！`);
+    toast(t('reward.toast', { name }));
   }
 }
 
@@ -272,9 +277,9 @@ function renderStats() {
   const money = savedMoney();
   const cals = Math.round(total * state.drinksPerDay * state.calPerDrink);
   const drinks = Math.round(total * state.drinksPerDay);
-  $('#moneySaved').textContent = '¥' + money.toLocaleString('ja-JP');
-  $('#calSaved').textContent = cals.toLocaleString('ja-JP');
-  $('#drinksAvoided').textContent = drinks.toLocaleString('ja-JP');
+  $('#moneySaved').textContent = fmtMoney(money);
+  $('#calSaved').textContent = cals.toLocaleString(I18N.locale());
+  $('#drinksAvoided').textContent = drinks.toLocaleString(I18N.locale());
   const el = elapsedDays();
   $('#soberRate').textContent = (el === 0 ? 100 : Math.round((total / el) * 100)) + '%';
 }
@@ -286,15 +291,16 @@ function renderAdvice(force) {
   const today = todayStr();
   const age = Advisor.ageFrom(state.birthDate);
 
-  if (!force && state.advice && state.advice.date === today &&
+  const lang = I18N.lang();
+  if (!force && state.advice && state.advice.date === today && state.advice.lang === lang &&
       state.advice.age === (age == null ? null : age) && state.advice.text) {
     el.textContent = state.advice.text;
     return;
   }
   const salt = (force && state.advice && state.advice.date === today) ? (state.advice.salt || 0) + 1 : 0;
   if (!state.adviceHistory) state.adviceHistory = {};
-  const { text } = Advisor.generate({ days: currentDays(), age, date: today, salt, history: state.adviceHistory });
-  state.advice = { date: today, salt, age: (age == null ? null : age), text };
+  const { text } = Advisor.generate({ days: currentDays(), age, date: today, salt, history: state.adviceHistory, lang });
+  state.advice = { date: today, salt, age: (age == null ? null : age), text, lang };
   save();
   el.textContent = text;
 }
@@ -313,16 +319,16 @@ function renderFortune() {
   if (flipped) fillFortune();
 }
 function fillFortune() {
-  const f = Tarot.drawFortune(state.birthDate, todayStr());
+  const f = Tarot.drawFortune(state.birthDate, todayStr(), I18N.lang());
   $('#tarotVisual').classList.toggle('reversed', f.reversed);
   $('#tarotEmoji').textContent = f.card.emoji;
   $('#tarotNum').textContent = f.card.n;
-  $('#fortuneName').innerHTML = `${f.card.name}<span class="orient">（${f.orientation}）</span>`;
+  $('#fortuneName').innerHTML = `${escapeHtml(f.name)}<span class="orient">（${t(f.reversed ? 'fortune.reversed' : 'fortune.upright')}）</span>`;
   $('#fortuneStars').textContent = '★'.repeat(f.stars) + '☆'.repeat(5 - f.stars);
   $('#fortuneMeaning').textContent = f.meaning;
   $('#fortuneAdvice').textContent = '💫 ' + f.advice;
   $('#fortuneLucky').innerHTML =
-    `<span class="luck"><span class="swatch" style="background:${f.color.hex}"></span>ラッキーカラー: ${f.color.name}</span>` +
+    `<span class="luck"><span class="swatch" style="background:${f.color.hex}"></span>${escapeHtml(t('fortune.color', { name: f.color.name }))}</span>` +
     `<span class="luck">🔢 ${f.luckyNumber}</span>` +
     `<span class="luck">🎁 ${escapeHtml(f.item)}</span>`;
 }
@@ -330,25 +336,31 @@ function fillFortune() {
 /* --- 今日の記録サマリー --- */
 const MOOD_EMOJI = { 5: '😄', 4: '🙂', 3: '😐', 2: '😟', 1: '😣' };
 function renderTodaySummary() {
-  const t = todayStr();
-  const log = state.logs[t];
+  const td = todayStr();
+  const log = state.logs[td];
   const el = $('#todaySummary');
   if (!log) {
-    el.innerHTML = `<p class="empty">まだ記録がありません。</p>
-      <button class="btn btn-primary btn-lg" id="logFromTab">✍️ 今日を記録する</button>`;
-    $('#logFromTab').addEventListener('click', () => openRecordSheet(t));
+    el.innerHTML = `<p class="empty">${escapeHtml(t('log.noneToday'))}</p>
+      <button class="btn btn-primary btn-lg" id="logFromTab">${escapeHtml(t('btn.recordToday'))}</button>`;
+    $('#logFromTab').addEventListener('click', () => openRecordSheet(td));
     return;
   }
-  const tags = (log.triggers || []).join('・');
+  const tags = (log.triggers || []).map(triggerLabel).join('・');
   el.innerHTML = `<div class="today-summary">
       <span class="ts-emoji">${MOOD_EMOJI[log.mood] || '📝'}</span>
       <div class="ts-text">
-        記録済みです。今日もおつかれさまでした。
-        <div class="ts-sub">渇望 ${log.craving}/10${tags ? ' ・ ' + escapeHtml(tags) : ''}</div>
+        ${escapeHtml(t('log.done'))}
+        <div class="ts-sub">${escapeHtml(t('log.craving', { n: log.craving }))}${tags ? ' ・ ' + escapeHtml(tags) : ''}</div>
       </div>
-      <button class="btn" id="editToday">編集</button>
+      <button class="btn" id="editToday">${escapeHtml(t('log.edit'))}</button>
     </div>`;
-  $('#editToday').addEventListener('click', () => openRecordSheet(t));
+  $('#editToday').addEventListener('click', () => openRecordSheet(td));
+}
+
+/* きっかけタグは日本語キーで保存し、表示時に翻訳する */
+function triggerLabel(key) {
+  const l = t('triggerName.' + key);
+  return l.startsWith('triggerName.') ? key : l;
 }
 
 /* --- 記録リスト --- */
@@ -362,17 +374,17 @@ function renderLogList() {
   rows.sort((a, b) => b.date.localeCompare(a.date));
 
   if (!rows.length) {
-    list.innerHTML = `<p class="empty">まだ記録がありません。今日の気分を残しましょう。</p>`;
+    list.innerHTML = `<p class="empty">${escapeHtml(t('log.empty'))}</p>`;
     return;
   }
   list.innerHTML = rows.map(r => {
     const emoji = r.relapse ? '🍺' : (r.log ? MOOD_EMOJI[r.log.mood] || '📝' : '📝');
     const note = r.log && r.log.note ? escapeHtml(r.log.note) : '';
     const rNote = r.relapse && state.relapseNotes[r.date] ? escapeHtml(state.relapseNotes[r.date]) : '';
-    const craving = r.log && r.log.craving != null ? ` ・ 渇望 ${r.log.craving}/10` : '';
+    const craving = r.log && r.log.craving != null ? ` ・ ${escapeHtml(t('log.craving', { n: r.log.craving }))}` : '';
     const tags = r.log && r.log.triggers && r.log.triggers.length
-      ? `<div class="li-tags">${r.log.triggers.map(escapeHtml).join(' ・ ')}</div>` : '';
-    const badge = r.relapse ? `<div class="li-badge">リセットした日${rNote ? '：' + rNote : ''}</div>` : '';
+      ? `<div class="li-tags">${r.log.triggers.map(x => escapeHtml(triggerLabel(x))).join(' ・ ')}</div>` : '';
+    const badge = r.relapse ? `<div class="li-badge">${escapeHtml(t('log.relapseBadge'))}${rNote ? '：' + rNote : ''}</div>` : '';
     return `<button class="log-item" data-date="${r.date}">
       <span class="li-emoji">${emoji}</span>
       <span class="li-body">
@@ -392,12 +404,14 @@ let selectedDay = null;
 
 function renderCalendar() {
   const y = calCursor.getFullYear(), m = calCursor.getMonth();
-  $('#calTitle').textContent = `${y}年 ${m + 1}月`;
+  $('#calTitle').textContent = I18N.lang() === 'ja'
+    ? `${y}年 ${m + 1}月`
+    : new Date(y, m, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   const startDow = new Date(y, m, 1).getDay();
   const daysInMonth = new Date(y, m + 1, 0).getDate();
   const today = todayStr();
 
-  const dows = ['日', '月', '火', '水', '木', '金', '土'];
+  const dows = I18N.dows();
   let html = dows.map(d => `<div class="cal-cell dow">${d}</div>`).join('');
   for (let i = 0; i < startDow; i++) html += `<div class="cal-cell"></div>`;
   for (let d = 1; d <= daysInMonth; d++) {
@@ -431,18 +445,18 @@ function renderDayDetail() {
   const relapse = isRelapseDay(ds);
   const before = ds < state.startDate;
 
-  let status = before ? '記録期間外' : relapse ? '🍺 飲酒した日' : '🌱 禁酒できた日';
+  let status = before ? t('dd.before') : relapse ? t('dd.drank') : t('dd.sober');
   let body = '';
   if (log) {
-    body += `<div>${MOOD_EMOJI[log.mood] || ''} 気分 ・ 渇望 ${log.craving}/10</div>`;
-    if (log.triggers && log.triggers.length) body += `<div>きっかけ: ${log.triggers.map(escapeHtml).join('・')}</div>`;
+    body += `<div>${escapeHtml(t('dd.mood', { emoji: MOOD_EMOJI[log.mood] || '', n: log.craving }))}</div>`;
+    if (log.triggers && log.triggers.length) body += `<div>${escapeHtml(t('dd.triggers', { list: log.triggers.map(triggerLabel).join('・') }))}</div>`;
     if (log.note) body += `<div>${escapeHtml(log.note)}</div>`;
   }
-  if (relapse && state.relapseNotes[ds]) body += `<div>メモ: ${escapeHtml(state.relapseNotes[ds])}</div>`;
+  if (relapse && state.relapseNotes[ds]) body += `<div>${escapeHtml(t('dd.note', { note: state.relapseNotes[ds] }))}</div>`;
 
-  let actions = `<button class="btn" id="ddEdit">✍️ この日の記録を${log ? '編集' : '追加'}</button>`;
-  if (relapse) actions += `<button class="btn" id="ddUnrelapse">スリップを取り消す</button>`;
-  else if (!before) actions += `<button class="btn" id="ddRelapse">この日に飲んだと記録</button>`;
+  let actions = `<button class="btn" id="ddEdit">${escapeHtml(t(log ? 'dd.edit' : 'dd.add'))}</button>`;
+  if (relapse) actions += `<button class="btn" id="ddUnrelapse">${escapeHtml(t('dd.unrelapse'))}</button>`;
+  else if (!before) actions += `<button class="btn" id="ddRelapse">${escapeHtml(t('dd.relapse'))}</button>`;
 
   box.hidden = false;
   box.innerHTML = `<div class="dd-date">${fmtDate(ds)} — ${status}</div>${body}<div class="dd-actions">${actions}</div>`;
@@ -453,7 +467,7 @@ function renderDayDetail() {
     state.relapses = state.relapses.filter(d => d !== ds);
     delete state.relapseNotes[ds];
     save(); updateDerived(); render();
-    toast('スリップの記録を取り消しました');
+    toast(t('dd.unrelapsed'));
   });
   const re = $('#ddRelapse');
   if (re) re.addEventListener('click', () => addRelapse(ds, ''));
@@ -462,9 +476,9 @@ function renderDayDetail() {
 /* --- チャート --- */
 function renderCharts() {
   drawLineChart($('#moodChart'), d => (state.logs[d] ? state.logs[d].mood : null), 1, 5,
-    '記録するとここに気分の推移が表示されます');
+    t('stats.moodEmpty'));
   drawLineChart($('#cravingChart'), d => (state.logs[d] ? state.logs[d].craving : null), 0, 10,
-    '記録するとここに渇望の推移が表示されます');
+    t('stats.cravingEmpty'));
 }
 
 function drawLineChart(canvas, valueFor, vMin, vMax, emptyMsg) {
@@ -529,11 +543,12 @@ function renderTriggerInsight() {
   if (!entries.length) { card.hidden = true; return; }
   card.hidden = false;
   const max = entries[0][1];
+  const times = n => I18N.lang() === 'ja' ? `${n}回` : `${n}×`;
   $('#triggerInsight').innerHTML = entries.slice(0, 5).map(([name, n]) =>
-    `<div class="ti-row"><span>${escapeHtml(name)}</span>
+    `<div class="ti-row"><span>${escapeHtml(triggerLabel(name))}</span>
       <span class="ti-bar"><i style="width:${Math.round(n / max * 100)}%"></i></span>
-      <span class="ti-count">${n}回</span></div>`).join('') +
-    `<p class="hint" style="margin-top:10px">「${escapeHtml(entries[0][0])}」のときに飲みたくなりやすいようです。対策を考えておくと安心です。</p>`;
+      <span class="ti-count">${times(n)}</span></div>`).join('') +
+    `<p class="hint" style="margin-top:10px">${escapeHtml(t('stats.triggerHint', { name: triggerLabel(entries[0][0]) }))}</p>`;
 }
 
 /* --- バッジ --- */
@@ -544,8 +559,8 @@ function renderBadges() {
     const date = state.badgeDates[b.days];
     return `<div class="badge ${on ? 'unlocked' : 'locked'}">
       <div class="b-emoji">${b.emoji}</div>
-      <div class="b-title">${b.title}</div>
-      <div class="b-sub">${on ? (date ? fmtDate(date) : '達成') : 'あと' + (b.days - days) + '日'}</div>
+      <div class="b-title">${escapeHtml(badgeTitle(b))}</div>
+      <div class="b-sub">${on ? (date ? fmtDate(date) : escapeHtml(t('badge.done'))) : escapeHtml(t('badge.remain', { n: b.days - days }))}</div>
     </div>`;
   }).join('');
 }
@@ -557,7 +572,9 @@ let selectedMood = null;
 function openRecordSheet(ds) {
   sheetDate = ds;
   const log = state.logs[ds] || {};
-  $('#recordDateTitle').textContent = (ds === todayStr() ? '今日' : fmtDate(ds)) + 'の記録';
+  $('#recordDateTitle').textContent = ds === todayStr()
+    ? t('sheet.recordTitleToday')
+    : t('sheet.recordTitle', { d: fmtDate(ds) });
   selectedMood = log.mood || null;
   $$('.mood').forEach(b => b.classList.toggle('selected', Number(b.dataset.mood) === selectedMood));
   $('#craving').value = log.craving || 0;
@@ -570,7 +587,7 @@ function openRecordSheet(ds) {
 
 function saveLog() {
   if (!sheetDate) return;
-  if (!selectedMood) { toast('今日の気分を選んでください 🙂'); return; }
+  if (!selectedMood) { toast(t('record.needMood')); return; }
   state.logs[sheetDate] = {
     mood: selectedMood,
     craving: Number($('#craving').value),
@@ -583,9 +600,9 @@ function saveLog() {
   render();
   if (newly.length) {
     celebrate();
-    toast(`${newly[0].emoji} ${newly[0].title} 達成！おめでとう！`);
+    toast(t('badge.toast', { emoji: newly[0].emoji, title: badgeTitle(newly[0]) }));
   } else {
-    toast('記録を保存しました ✍️');
+    toast(t('record.saved'));
   }
   buzz(12);
 }
@@ -606,13 +623,13 @@ function addRelapse(ds, note) {
   if (note) state.relapseNotes[ds] = note;
   save(); updateDerived(); render();
   switchTab('home');
-  toast('記録しました。また今日から、一歩ずつ 🌱', {
-    label: '取り消す',
+  toast(t('relapse.toast'), {
+    label: t('relapse.undo'),
     fn: () => {
       state.relapses = undoState.relapses;
       state.relapseNotes = undoState.notes;
       save(); updateDerived(); render();
-      toast('取り消しました');
+      toast(t('relapse.undone'));
     },
   });
 }
@@ -623,10 +640,10 @@ let breathTimer = null;
 function openSos() {
   const box = $('#sosReasons');
   box.innerHTML = state.reasons.length
-    ? `<p class="sr-title">あなたが禁酒する理由：</p>` +
+    ? `<p class="sr-title">${escapeHtml(t('sos.reasonsTitle'))}</p>` +
       state.reasons.map(r => `<div class="sr-item">🍀 ${escapeHtml(r)}</div>`).join('')
-    : `<p class="sr-title">設定で「禁酒する理由」を登録すると、ここに表示されます。</p>`;
-  $('#breathPhase').textContent = '準備';
+    : `<p class="sr-title">${escapeHtml(t('sos.noReasons'))}</p>`;
+  $('#breathPhase').textContent = t('sos.ready');
   $('#breathCount').textContent = '60';
   $('#sosStart').hidden = false;
   $('#breathCircle').className = 'breath-circle';
@@ -641,9 +658,9 @@ function startBreathing() {
   $('#sosStart').hidden = true;
   const circle = $('#breathCircle');
   const phases = [
-    { name: '吸って…', cls: 'in', sec: 4 },
-    { name: '止めて', cls: 'hold', sec: 2 },
-    { name: '吐いて…', cls: 'out', sec: 6 },
+    { name: t('sos.in'), cls: 'in', sec: 4 },
+    { name: t('sos.hold'), cls: 'hold', sec: 2 },
+    { name: t('sos.out'), cls: 'out', sec: 6 },
   ];
   let remain = 60, pi = 0, phaseLeft = phases[0].sec;
   circle.className = 'breath-circle ' + phases[0].cls;
@@ -655,8 +672,8 @@ function startBreathing() {
     remain--; phaseLeft--;
     if (remain <= 0) {
       clearInterval(breathTimer);
-      $('#breathPhase').textContent = 'よく乗り越えました🎉';
-      $('#breathCount').textContent = '波は引いていきます';
+      $('#breathPhase').textContent = t('sos.done');
+      $('#breathCount').textContent = t('sos.doneSub');
       circle.className = 'breath-circle';
       return;
     }
@@ -693,7 +710,9 @@ function openSettings() {
   $('#reasonsInput').value = state.reasons.join('\n');
   $('#reminderOn').checked = state.reminderOn;
   $('#reminderTime').value = state.reminderTime;
+  $('#currency').value = curCode();
   $$('#themeSeg .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === state.theme));
+  $$('#langSeg .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === (state.lang || 'auto')));
   updateReminderUI();
   openSheet('#settingsSheet');
 }
@@ -702,16 +721,17 @@ function updateReminderUI() {
   const on = $('#reminderOn').checked;
   $('#reminderTimeField').style.display = on ? '' : 'none';
   const hint = $('#reminderHint');
-  if (!('Notification' in window)) hint.textContent = 'この端末/ブラウザは通知に対応していません。';
-  else if (!on) hint.textContent = 'アプリを開いている間、設定時刻に「まだ記録していない日」だけお知らせします。';
-  else if (Notification.permission === 'denied') hint.textContent = '通知がブラウザでブロックされています。ブラウザの設定から許可してください。';
-  else hint.textContent = '設定時刻にアプリ（またはホーム画面のPWA）を開いていると通知が届きます。';
+  if (!('Notification' in window)) hint.textContent = t('hint.noNotif');
+  else if (!on) hint.textContent = t('hint.notifOff');
+  else if (Notification.permission === 'denied') hint.textContent = t('hint.notifDenied');
+  else hint.textContent = t('hint.notifOn');
 }
 
 async function saveSettings() {
   const sd = $('#startDate').value;
-  if (sd && parseDate(sd) > new Date()) { toast('未来の日付は設定できません'); return; }
+  if (sd && parseDate(sd) > new Date()) { toast(t('set.futureDate')); return; }
   state.startDate = sd || state.startDate;
+  state.currency = $('#currency').value;
   state.goalDays = Math.max(1, Math.round(Number($('#goalDays').value) || 30));
   state.drinksPerDay = Math.max(0, Number($('#drinksPerDay').value) || 0);
   state.pricePerDrink = Math.max(0, Number($('#pricePerDrink').value) || 0);
@@ -729,7 +749,7 @@ async function saveSettings() {
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') {
       $('#reminderOn').checked = false;
-      toast('通知が許可されなかったため、リマインダーはオフのままです');
+      toast(t('notif.denied'));
     }
   }
   state.reminderOn = $('#reminderOn').checked && ('Notification' in window) && Notification.permission === 'granted';
@@ -739,11 +759,22 @@ async function saveSettings() {
   scheduleReminder();
   updateDerived();
   render();
-  toast('設定を保存しました');
+  toast(t('set.saved'));
 }
 
 function applyTheme() {
   document.documentElement.dataset.theme = state.theme || 'auto';
+}
+
+/* --- 言語の適用（静的HTML＋lang属性） --- */
+function applyLang() {
+  I18N.setLang(state.lang || 'auto');
+  document.documentElement.lang = I18N.lang();
+  $$('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  $$('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+  $$('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  $$('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
+  document.title = I18N.lang() === 'ja' ? '禁酒トラッカー' : 'Sober Tracker';
 }
 
 /* --- バックアップ --- */
@@ -754,7 +785,7 @@ function exportData() {
   a.download = `kinshu-backup-${todayStr()}.json`;
   a.click();
   URL.revokeObjectURL(a.href);
-  toast('バックアップを保存しました 📤');
+  toast(t('backup.saved'));
 }
 
 function importData(file) {
@@ -763,14 +794,14 @@ function importData(file) {
     try {
       const data = JSON.parse(reader.result);
       if (!data || typeof data !== 'object' || !data.startDate || typeof data.logs !== 'object') {
-        toast('バックアップファイルの形式が正しくありません'); return;
+        toast(t('backup.invalid')); return;
       }
       state = { ...defaultState, ...data, version: STATE_VERSION, onboarded: true };
-      save(); applyTheme(); updateDerived(); render();
+      save(); applyTheme(); applyLang(); updateDerived(); render();
       closeSheet('#settingsSheet');
-      toast('バックアップを読み込みました 📥');
+      toast(t('backup.loaded'));
     } catch (e) {
-      toast('読み込みに失敗しました。ファイルを確認してください');
+      toast(t('backup.failed'));
     }
   };
   reader.readAsText(file);
@@ -793,23 +824,22 @@ function scheduleReminder() {
   reminderTimer = setTimeout(() => { maybeNotify(); scheduleReminder(); }, delay);
 }
 function maybeNotify() {
-  const t = todayStr();
-  if (state.logs[t]) return;
-  if (state.lastReminded === t) return;
+  const td = todayStr();
+  if (state.logs[td]) return;
+  if (state.lastReminded === td) return;
   if (document.visibilityState === 'visible') return;   // 画面を見ている最中は不要
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  state.lastReminded = t;
+  state.lastReminded = td;
   save();
   const days = currentDays();
-  const body = days > 0
-    ? `禁酒 ${days} 日目。今日の気分を記録して継続を残しましょう 🌱`
-    : `今日の一歩を記録しましょう。あなたならできます 🌱`;
-  try { new Notification('禁酒トラッカー', { body, tag: 'kinshu-daily' }); } catch (e) { /* SW通知が必要なブラウザもある */ }
+  const body = days > 0 ? t('notif.body', { n: days }) : t('notif.body0');
+  try { new Notification(t('notif.title'), { body, tag: 'kinshu-daily' }); } catch (e) { /* SW通知が必要なブラウザもある */ }
 }
 
 /* ═══════════════ オンボーディング ═══════════════ */
 function showOnboarding() {
   $('#obStartDate').value = todayStr();
+  if (I18N.lang() !== 'ja') $('#obPrice').value = 8;   // 海外向けの現実的な初期値（USD想定）
   $('#onboarding').classList.remove('hidden');
   let step = 1;
   const go = n => {
@@ -828,7 +858,7 @@ function showOnboarding() {
     if (sd && parseDate(sd) <= new Date()) state.startDate = sd;
     state.reasons = $$('#reasonChips .trigger.selected').map(b => b.dataset.reason);
     state.drinksPerDay = Math.max(0, Number($('#obDrinks').value) || 3);
-    state.pricePerDrink = Math.max(0, Number($('#obPrice').value) || 500);
+    state.pricePerDrink = Math.max(0, Number($('#obPrice').value) || (I18N.lang() === 'ja' ? 500 : 8));
     state.goalDays = Math.max(1, Math.round(Number($('#obGoal').value) || 30));
     state.birthDate = $('#obBirth').value || '';
     state.onboarded = true;
@@ -836,7 +866,7 @@ function showOnboarding() {
     $('#onboarding').classList.add('hidden');
     updateDerived();
     render();
-    toast('準備完了！一日ずつ、いきましょう 🌱');
+    toast(t('ob.done'));
   });
 }
 
@@ -910,15 +940,15 @@ function buzz(pattern) {
 
 /* 実績のシェア（Web Share API → なければクリップボード） */
 async function shareProgress() {
-  const text = `🌱 禁酒${currentDays()}日目！通算${totalSoberDays()}日で ¥${savedMoney().toLocaleString('ja-JP')} 節約しました。今日も一日ずつ。 #禁酒`;
+  const text = t('share.text', { days: currentDays(), total: totalSoberDays(), money: fmtMoney(savedMoney()) });
   if (navigator.share) {
     try { await navigator.share({ text }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
   }
   try {
     await navigator.clipboard.writeText(text);
-    toast('シェア用の文章をコピーしました 📋');
+    toast(t('share.copied'));
   } catch (e) {
-    toast('この端末ではシェアできませんでした');
+    toast(t('share.failed'));
   }
 }
 
@@ -940,6 +970,7 @@ function toast(msg, action) {
 /* ═══════════════ 起動 ═══════════════ */
 function init() {
   applyTheme();
+  applyLang();
 
   /* ナビ */
   $$('.nav-item').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
@@ -1003,13 +1034,18 @@ function init() {
     $$('#themeSeg .seg-btn').forEach(x => x.classList.toggle('active', x === b));
     applyTheme(); save(); renderCharts();
   }));
+  $$('#langSeg .seg-btn').forEach(b => b.addEventListener('click', () => {
+    state.lang = b.dataset.lang;
+    $$('#langSeg .seg-btn').forEach(x => x.classList.toggle('active', x === b));
+    save(); applyLang(); updateReminderUI(); render();
+  }));
   $('#exportBtn').addEventListener('click', exportData);
   $('#importFile').addEventListener('change', e => { if (e.target.files[0]) importData(e.target.files[0]); e.target.value = ''; });
   $('#resetAll').addEventListener('click', () => {
-    if (confirm('すべての記録を完全に削除します。元に戻せません。よろしいですか？')) {
+    if (confirm(t('set.confirmReset'))) {
       localStorage.removeItem(STORE_KEY);
       state = { ...defaultState };
-      save(); applyTheme(); render();
+      save(); applyTheme(); applyLang(); render();
       closeSheet('#settingsSheet');
       showOnboarding();
     }
@@ -1031,7 +1067,7 @@ function init() {
 
   const newly = updateDerived();
   render();
-  if (newly.length) { celebrate(); toast(`${newly[0].emoji} ${newly[0].title} 達成！おめでとう！`); }
+  if (newly.length) { celebrate(); toast(t('badge.toast', { emoji: newly[0].emoji, title: badgeTitle(newly[0]) })); }
 
   if (!state.onboarded) showOnboarding();
 
@@ -1047,7 +1083,7 @@ function init() {
         if (!nw) return;
         nw.addEventListener('statechange', () => {
           if (nw.state === 'installed' && navigator.serviceWorker.controller) {
-            toast('新しいバージョンがあります', { label: '更新', fn: () => location.reload() });
+            toast(t('sw.update'), { label: t('sw.reload'), fn: () => location.reload() });
           }
         });
       });

@@ -10,7 +10,7 @@ function check(name, cond) {
 }
 (async () => {
   const browser = await chromium.launch({ executablePath: EXEC });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: 'ja-JP' });
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
@@ -34,7 +34,7 @@ function check(name, cond) {
   check('オンボーディング完了で閉じる', await page.$eval('#onboarding', el => el.classList.contains('hidden')));
   await page.waitForTimeout(800); // count-up 完了待ち
   check('継続10日', (await page.textContent('#daysCount')) === '10');
-  check('通算10日', (await page.textContent('#totalNum')) === '10');
+  check('通算10日', (await page.textContent('#chipTotal b')) === '10');
   check('節約¥15,000', (await page.textContent('#moneySaved')) === '¥15,000');
   check('禁酒率100%', (await page.textContent('#soberRate')) === '100%');
   check('あいさつ表示', ((await page.textContent('#greeting')) || '').length > 3);
@@ -72,8 +72,8 @@ function check(name, cond) {
   await page.fill('#relapseNote', '飲み会で断れなかった');
   await page.click('#saveRelapseBtn');
   await page.waitForTimeout(600);
-  check('スリップ後: 連続0日(今日から再開)', (await page.textContent('#streakNum')) === '0');
-  check('スリップ後: 通算9日(保持)', (await page.textContent('#totalNum')) === '9');
+  check('スリップ後: 連続0日(今日から再開)', (await page.textContent('#chipStreak b')) === '0');
+  check('スリップ後: 通算9日(保持)', (await page.textContent('#chipTotal b')) === '9');
   const money2 = await page.textContent('#moneySaved');
   check('スリップ後も節約額は保持', money2 === '¥13,500');
   // undo
@@ -81,7 +81,7 @@ function check(name, cond) {
   check('undoトースト表示', undoVisible);
   await page.click('#toast button');
   await page.waitForTimeout(400);
-  check('undo後: 連続10日に戻る', (await page.textContent('#streakNum')) === '10');
+  check('undo後: 連続10日に戻る', (await page.textContent('#chipStreak b')) === '10');
 
   // ── 5. SOS ──
   await page.click('#sosBtn');
@@ -149,6 +149,45 @@ function check(name, cond) {
   check('旧データ移行: オンボーディングをスキップ', await page.$eval('#onboarding', el => el.classList.contains('hidden')));
   await page.waitForTimeout(800);
   check('旧データ移行: 継続5日', (await page.textContent('#daysCount')) === '5');
+
+  // ── 9. 言語切替（設定→English→UI英語化＋$表示） ──
+  await page.click('#settingsBtn');
+  await page.waitForTimeout(300);
+  await page.click('#langSeg .seg-btn[data-lang="en"]');
+  await page.waitForTimeout(300);
+  check('EN: html langがen', (await page.evaluate(() => document.documentElement.lang)) === 'en');
+  check('EN: タイトル英語化', (await page.textContent('.app-header h1')).includes('Sober Tracker'));
+  check('EN: ナビ英語化', (await page.textContent('.nav-item[data-tab="home"] .nav-label')) === 'Home');
+  await page.click('#closeSettings');
+  await page.waitForTimeout(200);
+  check('EN: 記録ボタン英語化', (await page.textContent('#recordTodayBtn')).includes('Log today'));
+  const enAdvice = await page.textContent('#adviceBody');
+  check('EN: AIアドバイス英語生成', /alcohol-free|Day/.test(enAdvice) && /Did you know/.test(enAdvice));
+  // 言語を日本語に戻す→日本語UI
+  await page.click('#settingsBtn');
+  await page.waitForTimeout(200);
+  await page.click('#langSeg .seg-btn[data-lang="ja"]');
+  await page.waitForTimeout(300);
+  check('JA復帰: タイトル日本語', (await page.textContent('.app-header h1')).includes('禁酒トラッカー'));
+  await page.click('#closeSettings');
+
+  // ── 10. 英語ロケールの新規ユーザー（自動判定＋USD） ──
+  const pageEn = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: 'en-US' });
+  pageEn.on('pageerror', e => errors.push('EN: ' + e.message));
+  await pageEn.goto(URL);
+  await pageEn.waitForTimeout(500);
+  check('EN新規: オンボーディング英語', (await pageEn.textContent('#onboarding h2')).includes('Welcome'));
+  const enPast = new Date(Date.now() - 4 * 86400000).toISOString().slice(0, 10);
+  await pageEn.fill('#obStartDate', enPast);
+  await pageEn.click('#obNext1');
+  await pageEn.fill('#obDrinks', '2');
+  await pageEn.fill('#obPrice', '10');
+  await pageEn.click('#obNext2');
+  await pageEn.click('#obFinish');
+  await pageEn.waitForTimeout(900);
+  check('EN新規: 節約$80表示', (await pageEn.textContent('#moneySaved')) === '$80');
+  check('EN新規: html=en', (await pageEn.evaluate(() => document.documentElement.lang)) === 'en');
+  await pageEn.close();
 
   check('コンソールエラーなし', errors.length === 0);
   if (errors.length) console.log('errors:', errors);

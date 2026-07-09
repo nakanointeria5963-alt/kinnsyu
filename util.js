@@ -16,7 +16,8 @@ window.Util = (() => {
   function addDays(ds, n) { return todayStr(new Date(parseDate(ds).getTime() + n * DAY)); }
   function fmtDate(ds) {
     try {
-      return parseDate(ds).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' });
+      const loc = window.I18N ? I18N.locale() : 'ja-JP';
+      return parseDate(ds).toLocaleDateString(loc, { month: 'long', day: 'numeric', weekday: 'short' });
     } catch (e) { return ds; }
   }
 
