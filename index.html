@@ -285,13 +285,18 @@
     <div class="seg" id="relapseDaySeg">
       <button class="seg-btn active" data-day="0" data-i18n="relapse.today">今日</button>
       <button class="seg-btn" data-day="1" data-i18n="relapse.yesterday">昨日</button>
+      <button class="seg-btn" data-day="other" data-i18n="relapse.other">別の日</button>
     </div>
+    <label class="field" id="relapseDateField" hidden>
+      <span data-i18n="relapse.dateLabel">飲んだ日を選んでください</span>
+      <input type="date" id="relapseDate" />
+    </label>
     <label class="field">
       <span data-i18n="relapse.noteLabel">きっかけをメモしておくと、次に活かせます（任意）</span>
       <textarea id="relapseNote" data-i18n-ph="relapse.notePh" placeholder="例: 仕事の飲み会で断れなかった"></textarea>
     </label>
     <div class="sheet-actions">
-      <button id="saveRelapseBtn" class="btn btn-danger-solid" data-i18n="relapse.save">記録して再スタート</button>
+      <button id="saveRelapseBtn" class="btn btn-danger-solid" data-i18n="relapse.save">記録して再開する</button>
       <button id="closeRelapse" class="btn" data-i18n="relapse.cancel">やめる</button>
     </div>
   </div>

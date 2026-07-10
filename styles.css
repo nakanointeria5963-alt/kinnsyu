@@ -314,6 +314,11 @@ textarea { min-height: 84px; resize: vertical; margin-bottom: 12px; }
 .log-item .li-note { font-size: .9rem; margin-top: 2px; white-space: pre-wrap; word-break: break-word; }
 .log-item .li-tags { font-size: .74rem; color: var(--primary); margin-top: 2px; }
 .log-item .li-badge { font-size: .72rem; color: var(--danger); }
+.log-item .li-edit {
+  flex: none; align-self: center; font-size: .76rem; font-weight: 700; color: var(--primary);
+  border: 1.5px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  border-radius: 99px; padding: 5px 11px; white-space: nowrap;
+}
 .empty { text-align: center; color: var(--muted); padding: 20px 8px; font-size: .9rem; }
 
 /* ═══════════════ カレンダー ═══════════════ */
@@ -406,22 +411,42 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
 }
 .sos-box h2 { font-size: 1.1rem; margin-bottom: 4px; }
 .sos-sub { font-size: .85rem; color: var(--muted); margin-bottom: 18px; }
-.breath-stage { position: relative; width: 180px; height: 180px; margin: 0 auto 18px; }
+.breath-stage { position: relative; width: 210px; height: 210px; margin: 0 auto 18px; }
 .breath-circle {
-  position: absolute; inset: 20px; border-radius: 50%;
+  position: absolute; inset: 35px; border-radius: 50%;
   background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--primary) 55%, #fff), var(--primary-dark));
-  opacity: .9; transform: scale(.72);
-  transition: transform 4s ease-in-out;
+  opacity: .65; transform: scale(.45);
+  transition: transform 4s cubic-bezier(.45, 0, .25, 1), opacity 4s ease, box-shadow 4s ease;
+  box-shadow: 0 0 0 0 transparent;
 }
-.breath-circle.in { transform: scale(1.06); }
-.breath-circle.hold { transform: scale(1.06); }
-.breath-circle.out { transform: scale(.72); transition-duration: 6s; }
+.breath-circle::after {
+  content: ""; position: absolute; inset: -14px; border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  opacity: 0; transition: opacity 4s ease;
+}
+.breath-circle.in,
+.breath-circle.hold {
+  transform: scale(1.5); opacity: 1;
+  box-shadow: 0 0 60px 18px color-mix(in srgb, var(--primary) 45%, transparent);
+}
+.breath-circle.in::after, .breath-circle.hold::after { opacity: 1; }
+.breath-circle.out {
+  transform: scale(.45); opacity: .65; transition-duration: 6s;
+  box-shadow: 0 0 0 0 transparent;
+}
+.breath-circle.out::after { opacity: 0; transition-duration: 6s; }
 .breath-center {
-  position: absolute; inset: 0; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; color: #fff; text-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+  position: absolute; inset: 0; display: flex; flex-direction: column; gap: 6px;
+  align-items: center; justify-content: center; color: #fff; text-shadow: 0 1px 4px rgba(0, 0, 0, .35);
 }
-.breath-center span:first-child { font-size: 1.05rem; font-weight: 800; }
-.breath-count { font-size: .82rem; opacity: .9; }
+.breath-center span:first-child {
+  font-size: 1.1rem; font-weight: 800;
+  background: rgba(8, 20, 18, .45); padding: 4px 16px; border-radius: 99px;
+}
+.breath-count {
+  font-size: .82rem; background: rgba(8, 20, 18, .35);
+  padding: 2px 12px; border-radius: 99px;
+}
 .sos-reasons { text-align: left; margin-bottom: 16px; }
 .sos-reasons .sr-title { font-size: .8rem; color: var(--muted); margin-bottom: 6px; }
 .sos-reasons .sr-item { font-size: .9rem; padding: 7px 12px; background: var(--bg); border-radius: 10px; margin-bottom: 6px; }

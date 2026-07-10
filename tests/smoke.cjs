@@ -136,6 +136,28 @@ function check(name, cond) {
   await page.click('.nav-item[data-tab="badges"]');
   check('シェアボタンあり', !!(await page.$('#shareBtn')));
 
+  // ── 7e. 記録リストに修正ボタン ──
+  await page.click('.nav-item[data-tab="log"]');
+  await page.waitForTimeout(200);
+  check('記録リストに修正ボタン表示', (await page.$$('#logList .li-edit')).length >= 1);
+
+  // ── 7f. スリップ「別の日」で4日前を記録 → 連続3日 → undo ──
+  await page.click('.nav-item[data-tab="home"]');
+  await page.click('#relapseBtn');
+  await page.waitForTimeout(250);
+  check('別の日ボタンあり', !!(await page.$('#relapseDaySeg .seg-btn[data-day="other"]')));
+  await page.click('#relapseDaySeg .seg-btn[data-day="other"]');
+  await page.waitForTimeout(150);
+  check('別の日: 日付欄が出る', !(await page.$eval('#relapseDateField', el => el.hidden)));
+  const day4ago = new Date(Date.now() - 4 * 86400000).toISOString().slice(0, 10);
+  await page.fill('#relapseDate', day4ago);
+  await page.click('#saveRelapseBtn');
+  await page.waitForTimeout(600);
+  check('別の日スリップ後: 連続3日', (await page.textContent('#chipStreak b')) === '3');
+  await page.click('#toast button'); // undo
+  await page.waitForTimeout(400);
+  check('別の日スリップundo後: 連続10日', (await page.textContent('#chipStreak b')) === '10');
+
   // ── 8. 既存ユーザーの移行（旧形式localStorage） ──
   await page.evaluate(() => {
     localStorage.setItem('kinshu_v1', JSON.stringify({

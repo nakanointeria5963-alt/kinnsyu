@@ -392,6 +392,7 @@ function renderLogList() {
         ${note ? `<span class="li-note">${note}</span>` : ''}
         ${tags}${badge}
       </span>
+      <span class="li-edit">${escapeHtml(t('log.editBtn'))}</span>
     </button>`;
   }).join('');
   $$('#logList .log-item').forEach(b =>
@@ -608,11 +609,14 @@ function saveLog() {
 }
 
 /* ═══════════════ スリップシート ═══════════════ */
-let relapseDayOffset = 0;
+let relapseDayChoice = '0';   // '0'=今日 / '1'=昨日 / 'other'=日付指定
 
 function openRelapseSheet() {
-  relapseDayOffset = 0;
+  relapseDayChoice = '0';
   $$('#relapseDaySeg .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.day === '0'));
+  $('#relapseDateField').hidden = true;
+  $('#relapseDate').value = '';
+  $('#relapseDate').max = todayStr();
   $('#relapseNote').value = '';
   openSheet('#relapseSheet');
 }
@@ -1009,11 +1013,21 @@ function init() {
 
   /* スリップシート */
   $$('#relapseDaySeg .seg-btn').forEach(b => b.addEventListener('click', () => {
-    relapseDayOffset = Number(b.dataset.day);
+    relapseDayChoice = b.dataset.day;
     $$('#relapseDaySeg .seg-btn').forEach(x => x.classList.toggle('active', x === b));
+    const other = relapseDayChoice === 'other';
+    $('#relapseDateField').hidden = !other;
+    if (other && !$('#relapseDate').value) $('#relapseDate').value = todayStr();
   }));
   $('#saveRelapseBtn').addEventListener('click', () => {
-    const ds = addDays(todayStr(), -relapseDayOffset);
+    let ds;
+    if (relapseDayChoice === 'other') {
+      ds = $('#relapseDate').value;
+      if (!ds) { toast(t('relapse.pickDate')); return; }
+      if (parseDate(ds) > new Date()) { toast(t('set.futureDate')); return; }
+    } else {
+      ds = addDays(todayStr(), -Number(relapseDayChoice));
+    }
     closeSheet('#relapseSheet');
     addRelapse(ds, $('#relapseNote').value.trim());
   });
