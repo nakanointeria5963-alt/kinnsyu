@@ -254,7 +254,7 @@ main { padding: 4px 16px 8px; }
 .tarot-num { position: absolute; top: 7px; left: 10px; font-size: .7rem; font-weight: 700; opacity: .7; }
 .fortune-info { flex: 1; min-width: 0; }
 .fortune-name { font-size: 1.12rem; font-weight: 800; }
-.fortune-name .orient { font-size: .76rem; font-weight: 600; opacity: .8; margin-left: 6px; }
+.fortune-name .orient { font-size: .76rem; font-weight: 600; opacity: .8; margin-left: 6px; white-space: nowrap; }
 .fortune-stars { color: #fde047; font-size: .95rem; letter-spacing: 2px; margin: 2px 0; }
 .fortune-meaning { font-size: .86rem; opacity: .92; }
 .fortune-detail { animation: fade .4s; }
@@ -516,7 +516,54 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
 }
 @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-.confetti-piece { position: fixed; top: -14px; z-index: 300; pointer-events: none; }
+.confetti-piece { position: fixed; top: -14px; z-index: 500; pointer-events: none; }
+
+/* ═══════════════ 大吉ジャックポット演出 ═══════════════ */
+.jackpot {
+  position: fixed; inset: 0; z-index: 400; overflow: hidden; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(12, 8, 2, .74);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+.jackpot.hidden { display: none; }
+.jp-rays {
+  position: absolute; left: 50%; top: 50%; width: 220vmax; height: 220vmax;
+  transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(from 0deg,
+    rgba(251, 191, 36, .30) 0deg 11deg, transparent 11deg 26deg);
+  animation: jpSpin 7s linear infinite;
+  -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 62%);
+  mask-image: radial-gradient(circle, #000 0%, transparent 62%);
+}
+@keyframes jpSpin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+.jp-core { position: relative; text-align: center; animation: jpPop .7s cubic-bezier(.2, 1.7, .4, 1); padding: 0 20px; }
+.jp-emoji { font-size: 4.2rem; line-height: 1.1; animation: jpBounce .9s ease-in-out infinite alternate; }
+.jp-title {
+  font-size: clamp(2.6rem, 13vw, 3.6rem); font-weight: 900; letter-spacing: .05em; color: #fde047;
+  text-shadow: 0 0 28px rgba(251, 191, 36, .95), 0 3px 0 #b45309, 0 0 70px rgba(253, 224, 71, .5);
+  animation: jpFlash .55s ease-in-out infinite alternate;
+}
+.jp-sub { color: #fff; font-weight: 700; margin-top: 10px; font-size: 1rem; text-shadow: 0 1px 8px rgba(0, 0, 0, .7); }
+.jp-tap { color: rgba(255, 255, 255, .75); font-size: .78rem; margin-top: 22px; }
+@keyframes jpPop { 0% { transform: scale(0) rotate(-8deg); opacity: 0; } 62% { transform: scale(1.18) rotate(2deg); opacity: 1; } 100% { transform: scale(1) rotate(0); } }
+@keyframes jpFlash { from { filter: brightness(1); transform: scale(1); } to { filter: brightness(1.4); transform: scale(1.06); } }
+@keyframes jpBounce { from { transform: translateY(0); } to { transform: translateY(-12px); } }
+
+/* 大吉の日のカード（金色仕様・演出後もその日は残る） */
+.tarot.gold {
+  background: radial-gradient(circle at 50% 28%, #fff7d6, #fde047 42%, #f59e0b 82%);
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .85), 0 0 20px 5px rgba(251, 191, 36, .6);
+  animation: goldGlow 1.6s ease-in-out infinite alternate;
+}
+@keyframes goldGlow {
+  from { box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .85), 0 0 14px 3px rgba(251, 191, 36, .45); }
+  to { box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .85), 0 0 26px 8px rgba(251, 191, 36, .75); }
+}
+.jp-chip {
+  display: inline-block; margin-left: 8px; vertical-align: 2px;
+  background: linear-gradient(135deg, #fde047, #f59e0b); color: #7c2d12;
+  font-size: .66rem; font-weight: 900; border-radius: 99px; padding: 2px 10px; letter-spacing: .04em;
+}
 
 canvas { width: 100%; }
 

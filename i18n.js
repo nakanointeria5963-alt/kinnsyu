@@ -69,6 +69,10 @@ window.I18N = (() => {
     'fortune.upright': '正位置',
     'fortune.reversed': '逆位置',
     'fortune.color': 'ラッキーカラー: {name}',
+    'fortune.jackpot': '🎊 大吉 🎊',
+    'fortune.jackpotSub': '今日は特別な大吉日！すばらしい一日になりそう ✨',
+    'fortune.jackpotTap': 'タップして閉じる',
+    'fortune.jackpotChip': '大吉',
 
     'nav.home': 'ホーム', 'nav.log': '記録', 'nav.stats': '統計', 'nav.badges': '達成',
     'sos.fab': '🆘 飲みたい',
@@ -301,6 +305,10 @@ window.I18N = (() => {
     'fortune.upright': 'Upright',
     'fortune.reversed': 'Reversed',
     'fortune.color': 'Lucky color: {name}',
+    'fortune.jackpot': '🎊 JACKPOT 🎊',
+    'fortune.jackpotSub': 'A rare five-star day! Something wonderful is coming ✨',
+    'fortune.jackpotTap': 'Tap to close',
+    'fortune.jackpotChip': 'BEST DAY',
 
     'nav.home': 'Home', 'nav.log': 'Log', 'nav.stats': 'Stats', 'nav.badges': 'Awards',
     'sos.fab': '🆘 Craving',

@@ -321,9 +321,11 @@ function renderFortune() {
 function fillFortune() {
   const f = Tarot.drawFortune(state.birthDate, todayStr(), I18N.lang());
   $('#tarotVisual').classList.toggle('reversed', f.reversed);
+  $('#tarotVisual').classList.toggle('gold', f.jackpot);
   $('#tarotEmoji').textContent = f.card.emoji;
-  $('#tarotNum').textContent = f.card.n;
-  $('#fortuneName').innerHTML = `${escapeHtml(f.name)}<span class="orient">（${t(f.reversed ? 'fortune.reversed' : 'fortune.upright')}）</span>`;
+  $('#tarotNum').textContent = f.card.numLabel;
+  const chip = f.jackpot ? `<span class="jp-chip">${escapeHtml(t('fortune.jackpotChip'))}</span>` : '';
+  $('#fortuneName').innerHTML = `${escapeHtml(f.name)}<span class="orient">（${t(f.reversed ? 'fortune.reversed' : 'fortune.upright')}）</span>${chip}`;
   $('#fortuneStars').textContent = '★'.repeat(f.stars) + '☆'.repeat(5 - f.stars);
   $('#fortuneMeaning').textContent = f.meaning;
   $('#fortuneAdvice').textContent = '💫 ' + f.advice;
@@ -331,6 +333,27 @@ function fillFortune() {
     `<span class="luck"><span class="swatch" style="background:${f.color.hex}"></span>${escapeHtml(t('fortune.color', { name: f.color.name }))}</span>` +
     `<span class="luck">🔢 ${f.luckyNumber}</span>` +
     `<span class="luck">🎁 ${escapeHtml(f.item)}</span>`;
+  return f;
+}
+
+/* --- 大吉のジャックポット演出（めくった瞬間だけ） --- */
+let jackpotTimer = null;
+function showJackpot(f) {
+  const ov = $('#jackpotOverlay');
+  $('#jpEmoji').textContent = f.card.emoji;
+  ov.classList.remove('hidden');
+  ov.setAttribute('aria-hidden', 'false');
+  buzz([40, 80, 40, 80, 90]);
+  celebrate(['#fde047', '#fbbf24', '#f59e0b', '#fff7d6', '#eab308']);
+  const close = () => {
+    ov.classList.add('hidden');
+    ov.setAttribute('aria-hidden', 'true');
+    clearTimeout(jackpotTimer);
+  };
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  clearTimeout(jackpotTimer);
+  jackpotTimer = setTimeout(close, reduced ? 1800 : 3600);
+  ov.onclick = close;
 }
 
 /* --- 今日の記録サマリー --- */
@@ -875,10 +898,10 @@ function showOnboarding() {
 }
 
 /* ═══════════════ 紙吹雪 ═══════════════ */
-function celebrate() {
+function celebrate(palette) {
   buzz([20, 60, 20]);
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const colors = ['#f59e0b', '#34d399', '#60a5fa', '#f472b6', '#fbbf24', '#2dd4bf'];
+  const colors = palette || ['#f59e0b', '#34d399', '#60a5fa', '#f472b6', '#fbbf24', '#2dd4bf'];
   for (let i = 0; i < 70; i++) {
     const p = document.createElement('div');
     p.className = 'confetti-piece';
@@ -995,9 +1018,10 @@ function init() {
     state.tarotFlipped = todayStr();
     buzz(10);
     save();
-    fillFortune();
+    const f = fillFortune();
     $('#tarotFlip').classList.add('flipped');
     setTimeout(() => { $('#fortuneInfo').hidden = false; $('#fortuneDetail').hidden = false; $('#tarotFlip').disabled = true; }, 400);
+    if (f.jackpot) setTimeout(() => showJackpot(f), 750);
   });
 
   /* 記録シート */
@@ -1017,7 +1041,12 @@ function init() {
     $$('#relapseDaySeg .seg-btn').forEach(x => x.classList.toggle('active', x === b));
     const other = relapseDayChoice === 'other';
     $('#relapseDateField').hidden = !other;
-    if (other && !$('#relapseDate').value) $('#relapseDate').value = todayStr();
+    if (other) {
+      const inp = $('#relapseDate');
+      if (!inp.value) inp.value = todayStr();
+      /* タップした流れでそのまま日付ピッカーを開く（対応ブラウザのみ） */
+      try { inp.showPicker(); } catch (e) { inp.focus(); }
+    }
   }));
   $('#saveRelapseBtn').addEventListener('click', () => {
     let ds;

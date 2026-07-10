@@ -211,6 +211,49 @@ function check(name, cond) {
   check('EN新規: html=en', (await pageEn.evaluate(() => document.documentElement.lang)) === 'en');
   await pageEn.close();
 
+  // ── 11. タロット78枚デッキ＋大吉ジャックポット ──
+  const variety = await page.evaluate(() => {
+    let minor = 0, major = 0, jack = 0;
+    for (let i = 0; i < 400; i++) {
+      const d = Util.addDays(Util.todayStr(), -i);
+      const f = Tarot.drawFortune('1985-03-10', d);
+      if (f.card.kind === 'minor') minor++; else major++;
+      if (f.jackpot) jack++;
+    }
+    return { minor, major, jack };
+  });
+  check('タロット: 小アルカナが引かれる', variety.minor > 100, `minor=${variety.minor}`);
+  check('タロット: 大アルカナも引かれる', variety.major > 40, `major=${variety.major}`);
+  check('タロット: 大吉はレア(400日中1〜40回)', variety.jack >= 1 && variety.jack <= 40, `jack=${variety.jack}`);
+  check('タロット: デッキは78枚', (await page.evaluate(() => Tarot.DECK_SIZE)) === 78);
+
+  // 今日が大吉になる誕生日を探して、めくり→演出→閉じるまで検証
+  const jackBirth = await page.evaluate(() => {
+    for (let y = 1950; y < 2010; y++) for (let m = 1; m <= 12; m++) {
+      const b = `${y}-${String(m).padStart(2, '0')}-15`;
+      if (Tarot.drawFortune(b, Util.todayStr()).jackpot) return b;
+    }
+    return null;
+  });
+  check('大吉になる誕生日が見つかる', !!jackBirth, jackBirth);
+  if (jackBirth) {
+    await page.evaluate((b) => {
+      const s = JSON.parse(localStorage.getItem('kinshu_v1'));
+      s.birthDate = b; s.tarotFlipped = ''; s.advice = null;
+      localStorage.setItem('kinshu_v1', JSON.stringify(s));
+    }, jackBirth);
+    await page.reload(); await page.waitForTimeout(600);
+    await page.click('#tarotFlip');
+    await page.waitForTimeout(1400);
+    check('大吉: ジャックポット演出が表示', !(await page.$eval('#jackpotOverlay', el => el.classList.contains('hidden'))));
+    check('大吉: カードが金色仕様', await page.$eval('#tarotVisual', el => el.classList.contains('gold')));
+    const jpTitle = await page.textContent('.jp-title');
+    check('大吉: タイトル表示', jpTitle.includes('大吉') || jpTitle.includes('JACKPOT'));
+    await page.click('#jackpotOverlay');
+    await page.waitForTimeout(300);
+    check('大吉: タップで演出が閉じる', await page.$eval('#jackpotOverlay', el => el.classList.contains('hidden')));
+  }
+
   check('コンソールエラーなし', errors.length === 0);
   if (errors.length) console.log('errors:', errors);
   console.log(failures.length ? `\n✗ ${failures.length} 件失敗` : '\n✓ 全テスト合格');
