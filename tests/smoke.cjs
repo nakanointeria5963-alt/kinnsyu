@@ -60,8 +60,11 @@ function check(name, cond) {
   await page.click('.nav-item[data-tab="home"]');
   check('タロットは伏せた状態', !(await page.$eval('#tarotFlip', el => el.classList.contains('flipped'))));
   await page.click('#tarotFlip');
+  await page.waitForTimeout(150);
+  check('タップ直後: シャッフル演出中', await page.$eval('#tarotFlip', el => el.classList.contains('shuffling')));
   await page.waitForTimeout(700);
   check('タロットがめくれる', await page.$eval('#tarotFlip', el => el.classList.contains('flipped')));
+  check('シャッフル演出は終了している', !(await page.$eval('#tarotFlip', el => el.classList.contains('shuffling'))));
   check('カード名表示', ((await page.textContent('#fortuneName')) || '').length > 1);
   await page.reload(); await page.waitForTimeout(500);
   check('リロード後もめくれたまま', await page.$eval('#tarotFlip', el => el.classList.contains('flipped')));
@@ -256,7 +259,7 @@ function check(name, cond) {
     }, jackBirth);
     await page.reload(); await page.waitForTimeout(600);
     await page.click('#tarotFlip');
-    await page.waitForTimeout(1400);
+    await page.waitForTimeout(1700);
     check('大吉: ジャックポット演出が表示', !(await page.$eval('#jackpotOverlay', el => el.classList.contains('hidden'))));
     check('大吉: カードが金色仕様', await page.$eval('#tarotVisual', el => el.classList.contains('gold')));
     const jpTitle = await page.textContent('.jp-title');

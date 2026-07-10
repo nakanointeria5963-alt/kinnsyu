@@ -225,6 +225,16 @@ main { padding: 4px 16px 8px; }
   transform-style: preserve-3d; transition: transform .8s cubic-bezier(.3, 1.2, .4, 1);
 }
 .flip.flipped { transform: rotateY(180deg); cursor: default; }
+.flip.shuffling { animation: tarotShuffle .42s ease-in-out; pointer-events: none; }
+@keyframes tarotShuffle {
+  0% { transform: translateX(0) rotate(0deg); }
+  15% { transform: translateX(-7px) rotate(-5deg); }
+  30% { transform: translateX(6px) rotate(4deg); }
+  45% { transform: translateX(-5px) rotate(-3deg); }
+  60% { transform: translateX(4px) rotate(3deg); }
+  75% { transform: translateX(-2px) rotate(-1deg); }
+  100% { transform: translateX(0) rotate(0deg); }
+}
 .flip-face {
   position: absolute; inset: 0; border-radius: 12px; backface-visibility: hidden;
   -webkit-backface-visibility: hidden; display: flex; flex-direction: column;
@@ -236,6 +246,21 @@ main { padding: 4px 16px 8px; }
     repeating-linear-gradient(45deg, rgba(255, 255, 255, .06) 0 8px, transparent 8px 16px),
     linear-gradient(160deg, #312e81, #4338ca);
   border: 2px solid rgba(255, 255, 255, .35);
+  overflow: hidden;
+}
+.flip-back::after {
+  content: ""; position: absolute; top: 0; left: -60%; width: 45%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .65), transparent);
+  transform: skewX(-20deg); opacity: 0; pointer-events: none;
+}
+.flip.shuffling .flip-back::after { animation: tarotGlint .42s ease-in-out; }
+@keyframes tarotGlint {
+  0% { left: -60%; opacity: 0; }
+  40% { opacity: 1; }
+  100% { left: 130%; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flip.shuffling, .flip.shuffling .flip-back::after { animation: none !important; }
 }
 .flip-back-star { font-size: 1.9rem; color: #fde047; animation: twinkle 1.8s ease-in-out infinite; }
 @keyframes twinkle { 0%, 100% { opacity: .6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.18); } }

@@ -1030,15 +1030,25 @@ function init() {
     btn.classList.remove('spin'); void btn.offsetWidth; btn.classList.add('spin');
     renderAdvice(true);
   });
+  let tarotFlipping = false;
   $('#tarotFlip').addEventListener('click', () => {
-    if (state.tarotFlipped === todayStr()) return;
-    state.tarotFlipped = todayStr();
-    buzz(10);
-    save();
-    const f = fillFortune();
-    $('#tarotFlip').classList.add('flipped');
-    setTimeout(() => { $('#fortuneInfo').hidden = false; $('#fortuneDetail').hidden = false; $('#tarotFlip').disabled = true; }, 400);
-    if (f.jackpot) setTimeout(() => showJackpot(f), 750);
+    if (tarotFlipping || state.tarotFlipped === todayStr()) return;
+    const btn = $('#tarotFlip');
+    const reveal = () => {
+      tarotFlipping = false;
+      state.tarotFlipped = todayStr();
+      buzz(10);
+      save();
+      const f = fillFortune();
+      btn.classList.add('flipped');
+      setTimeout(() => { $('#fortuneInfo').hidden = false; $('#fortuneDetail').hidden = false; btn.disabled = true; }, 400);
+      if (f.jackpot) setTimeout(() => showJackpot(f), 750);
+    };
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { reveal(); return; }
+    tarotFlipping = true;
+    btn.classList.add('shuffling');
+    buzz([8, 40, 8, 40, 12]);
+    setTimeout(() => { btn.classList.remove('shuffling'); reveal(); }, 420);
   });
 
   /* 記録シート */
