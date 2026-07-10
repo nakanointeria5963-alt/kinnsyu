@@ -516,6 +516,47 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
 }
 @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
+/* ═══════════════ スリップ記録の確認（中央ポップ） ═══════════════ */
+.rc-overlay {
+  position: fixed; inset: 0; z-index: 210; display: flex; align-items: center; justify-content: center;
+  padding: 24px; background: rgba(10, 20, 18, .46);
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+  animation: rcFadeIn .22s ease-out;
+}
+.rc-overlay.hidden { display: none; }
+.rc-overlay.closing { animation: rcFadeOut .2s ease-in forwards; }
+.rc-overlay.closing .rc-card { animation: rcCardOut .2s ease-in forwards; }
+@keyframes rcFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rcFadeOut { from { opacity: 1; } to { opacity: 0; } }
+.rc-card {
+  position: relative; max-width: 340px; width: 100%; text-align: center;
+  background: var(--card); border-radius: calc(var(--radius) + 6px); padding: 30px 26px 24px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .22), var(--shadow);
+  animation: rcCardIn .42s cubic-bezier(.2, 1.6, .4, 1);
+}
+@keyframes rcCardIn { from { opacity: 0; transform: scale(.72) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes rcCardOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(.85); } }
+.rc-icon {
+  font-size: 3rem; line-height: 1; margin-bottom: 12px;
+  animation: rcIconPop .5s .1s backwards cubic-bezier(.2, 1.8, .4, 1);
+}
+@keyframes rcIconPop { from { transform: scale(0) rotate(-15deg); } to { transform: scale(1) rotate(0); } }
+.rc-msg { font-size: 1.02rem; font-weight: 700; color: var(--text); line-height: 1.6; margin-bottom: 22px; }
+.rc-actions { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.rc-undo {
+  flex: 1; background: var(--primary); color: #fff; border: none; border-radius: 99px;
+  padding: 13px 18px; font-size: .96rem; font-weight: 800; cursor: pointer;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 38%, transparent);
+}
+.rc-undo:active { transform: scale(.97); }
+.rc-close {
+  flex: none; width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--border);
+  background: var(--bg); color: var(--muted); font-size: 1rem; cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rc-overlay, .rc-card, .rc-icon { animation: none !important; }
+}
+
 .confetti-piece { position: fixed; top: -14px; z-index: 500; pointer-events: none; }
 
 /* ═══════════════ 大吉ジャックポット演出 ═══════════════ */

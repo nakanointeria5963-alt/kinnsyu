@@ -76,12 +76,13 @@ function check(name, cond) {
   check('スリップ後: 通算9日(保持)', (await page.textContent('#chipTotal b')) === '9');
   const money2 = await page.textContent('#moneySaved');
   check('スリップ後も節約額は保持', money2 === '¥13,500');
-  // undo
-  const undoVisible = !(await page.$eval('#toast', el => el.classList.contains('hidden')));
-  check('undoトースト表示', undoVisible);
-  await page.click('#toast button');
-  await page.waitForTimeout(400);
+  // undo（中央ポップの確認カード）
+  const confirmVisible = !(await page.$eval('#relapseConfirm', el => el.classList.contains('hidden')));
+  check('スリップ確認カード表示', confirmVisible);
+  await page.click('#rcUndo');
+  await page.waitForTimeout(500);
   check('undo後: 連続10日に戻る', (await page.textContent('#chipStreak b')) === '10');
+  check('undo後: 確認カードが閉じる', await page.$eval('#relapseConfirm', el => el.classList.contains('hidden')));
 
   // ── 5. SOS ──
   await page.click('#sosBtn');
@@ -154,9 +155,20 @@ function check(name, cond) {
   await page.click('#saveRelapseBtn');
   await page.waitForTimeout(600);
   check('別の日スリップ後: 連続3日', (await page.textContent('#chipStreak b')) === '3');
-  await page.click('#toast button'); // undo
-  await page.waitForTimeout(400);
+  await page.click('#rcUndo'); // undo
+  await page.waitForTimeout(500);
   check('別の日スリップundo後: 連続10日', (await page.textContent('#chipStreak b')) === '10');
+
+  // ── 7g. スリップ確認カードの✕ボタン → undoせず記録は残る ──
+  await page.click('#relapseBtn');
+  await page.waitForTimeout(250);
+  await page.click('#saveRelapseBtn'); // 今日を記録
+  await page.waitForTimeout(500);
+  check('✕ボタン前: 連続0日', (await page.textContent('#chipStreak b')) === '0');
+  await page.click('#rcClose');
+  await page.waitForTimeout(500);
+  check('✕ボタンで確認カードが閉じる', await page.$eval('#relapseConfirm', el => el.classList.contains('hidden')));
+  check('✕ボタンはundoしない: 連続0日のまま', (await page.textContent('#chipStreak b')) === '0');
 
   // ── 8. 既存ユーザーの移行（旧形式localStorage） ──
   await page.evaluate(() => {
@@ -253,6 +265,32 @@ function check(name, cond) {
     await page.waitForTimeout(300);
     check('大吉: タップで演出が閉じる', await page.$eval('#jackpotOverlay', el => el.classList.contains('hidden')));
   }
+
+  // ── 12. Service Worker更新（キャッシュ総入れ替え）でも記録データは消えないか検証 ──
+  const beforeUpdate = {
+    total: await page.textContent('#chipTotal b'),
+    money: await page.textContent('#moneySaved'),
+    raw: await page.evaluate(() => localStorage.getItem('kinshu_v1')),
+  };
+  const swSource = await page.evaluate(() => fetch('sw.js').then(r => r.text()));
+  check('sw.jsはlocalStorage/indexedDBに触れない設計', !/localStorage|indexedDB/.test(swSource));
+  await page.evaluate(async () => {
+    // 新バージョンが降ってきて古いキャッシュを丸ごと入れ替える状況を再現
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map(r => r.unregister()));
+  });
+  await page.reload();
+  await page.waitForTimeout(700);
+  const afterUpdate = {
+    total: await page.textContent('#chipTotal b'),
+    money: await page.textContent('#moneySaved'),
+    raw: await page.evaluate(() => localStorage.getItem('kinshu_v1')),
+  };
+  check('SW更新後も記録データ(生データ)が完全一致', beforeUpdate.raw === afterUpdate.raw);
+  check('SW更新後も通算日数が変わらない', beforeUpdate.total === afterUpdate.total);
+  check('SW更新後も節約額が変わらない', beforeUpdate.money === afterUpdate.money);
 
   check('コンソールエラーなし', errors.length === 0);
   if (errors.length) console.log('errors:', errors);

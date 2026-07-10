@@ -9,6 +9,7 @@ window.I18N = (() => {
   const ja = {
     'app.title': '🌱 禁酒トラッカー',
     'aria.settings': '設定を開く',
+    'aria.close': '閉じる',
 
     'greet.morning': 'おはようございます ☀️',
     'greet.day': 'こんにちは 🌤️',
@@ -245,6 +246,7 @@ window.I18N = (() => {
   const en = {
     'app.title': '🌱 Sober Tracker',
     'aria.settings': 'Open settings',
+    'aria.close': 'Close',
 
     'greet.morning': 'Good morning ☀️',
     'greet.day': 'Good afternoon 🌤️',

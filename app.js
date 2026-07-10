@@ -650,15 +650,32 @@ function addRelapse(ds, note) {
   if (note) state.relapseNotes[ds] = note;
   save(); updateDerived(); render();
   switchTab('home');
-  toast(t('relapse.toast'), {
-    label: t('relapse.undo'),
-    fn: () => {
-      state.relapses = undoState.relapses;
-      state.relapseNotes = undoState.notes;
-      save(); updateDerived(); render();
-      toast(t('relapse.undone'));
-    },
+  buzz(15);
+  showRelapseConfirm(() => {
+    state.relapses = undoState.relapses;
+    state.relapseNotes = undoState.notes;
+    save(); updateDerived(); render();
+    toast(t('relapse.undone'));
   });
+}
+
+let relapseConfirmTimer = null;
+function showRelapseConfirm(onUndo) {
+  const ov = $('#relapseConfirm');
+  $('#rcMsg').textContent = t('relapse.toast');
+  $('#rcUndo').textContent = t('relapse.undo');
+  ov.classList.remove('hidden', 'closing');
+  ov.setAttribute('aria-hidden', 'false');
+  const close = () => {
+    ov.classList.add('closing');
+    clearTimeout(relapseConfirmTimer);
+    setTimeout(() => { ov.classList.add('hidden'); ov.setAttribute('aria-hidden', 'true'); }, 220);
+  };
+  $('#rcUndo').onclick = () => { close(); onUndo(); };
+  $('#rcClose').onclick = close;
+  ov.onclick = e => { if (e.target === ov) close(); };
+  clearTimeout(relapseConfirmTimer);
+  relapseConfirmTimer = setTimeout(close, 5000);
 }
 
 /* ═══════════════ SOS（深呼吸） ═══════════════ */
