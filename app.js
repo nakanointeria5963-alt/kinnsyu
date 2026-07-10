@@ -35,9 +35,16 @@ const defaultState = {
   tarotFlipped: '',         // タロットをめくった日
   advice: null,
   adviceHistory: {},
+  deviceSalt: '',           // 生年月日未入力でも占いが人によって変わるための端末固有値
+  lastBackupAt: '',         // 最後にバックアップを保存した日
+  backupNudgedAt: '',       // 最後にバックアップを促した日
 };
 
 let state = load();
+if (!state.deviceSalt) {
+  state.deviceSalt = Math.random().toString(36).slice(2, 12);
+  if (state.onboarded) save();
+}
 
 function load() {
   try {
@@ -54,7 +61,32 @@ function load() {
     return { ...defaultState };
   }
 }
-function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); mirrorReminder(); }
+
+/* Service Workerがアプリを閉じた後も通知を出せるよう、必要最小限の情報を
+   IndexedDBに写しておく（SWはlocalStorageを読めないため）。記録本体は写さない。 */
+async function mirrorReminder() {
+  if (!('indexedDB' in window)) return;
+  try {
+    const db = await new Promise((res, rej) => {
+      const rq = indexedDB.open('kinshu-sw', 1);
+      rq.onupgradeneeded = () => rq.result.createObjectStore('kv');
+      rq.onsuccess = () => res(rq.result);
+      rq.onerror = () => rej(rq.error);
+    });
+    const days = currentDays();
+    const tx = db.transaction('kv', 'readwrite');
+    tx.objectStore('kv').put({
+      on: !!state.reminderOn,
+      time: state.reminderTime || '21:00',
+      lastReminded: state.lastReminded || '',
+      loggedDate: state.logs[todayStr()] ? todayStr() : '',
+      title: t('notif.title'),
+      body: days > 0 ? t('notif.body', { n: days }) : t('notif.body0'),
+    }, 'reminder');
+    tx.oncomplete = () => db.close();
+  } catch (e) { /* IndexedDB不可の環境では画面内通知のみ */ }
+}
 
 /* 別タブでの変更を反映 */
 window.addEventListener('storage', e => {
@@ -319,7 +351,8 @@ function renderFortune() {
   if (flipped) fillFortune();
 }
 function fillFortune() {
-  const f = Tarot.drawFortune(state.birthDate, todayStr(), I18N.lang());
+  /* 生年月日が未入力でも端末ごとに違うカードになるようsaltで代用 */
+  const f = Tarot.drawFortune(state.birthDate || 'dev-' + state.deviceSalt, todayStr(), I18N.lang());
   $('#tarotVisual').classList.toggle('reversed', f.reversed);
   $('#tarotVisual').classList.toggle('gold', f.jackpot);
   $('#tarotEmoji').textContent = f.card.emoji;
@@ -755,6 +788,8 @@ function openSettings() {
   $('#reminderOn').checked = state.reminderOn;
   $('#reminderTime').value = state.reminderTime;
   $('#currency').value = curCode();
+  $('#currency').dataset.init = curCode();
+  $('#currencyWarn').hidden = true;
   $$('#themeSeg .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === state.theme));
   $$('#langSeg .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === (state.lang || 'auto')));
   updateReminderUI();
@@ -801,6 +836,7 @@ async function saveSettings() {
   save();
   closeSheet('#settingsSheet');
   scheduleReminder();
+  updatePeriodicSync();
   updateDerived();
   render();
   toast(t('set.saved'));
@@ -818,18 +854,54 @@ function applyLang() {
   $$('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
   $$('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
   $$('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
-  document.title = I18N.lang() === 'ja' ? '禁酒トラッカー' : 'Sober Tracker';
+  const en = I18N.lang() !== 'ja';
+  document.title = en ? 'Sober Tracker' : '禁酒トラッカー';
+  /* ホーム画面に追加した時のアプリ名も言語に合わせる */
+  const ml = $('#manifestLink');
+  if (ml) ml.href = en ? 'manifest-en.json' : 'manifest.json';
+  const at = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+  if (at) at.content = en ? 'Sober' : '禁酒';
 }
 
 /* --- バックアップ --- */
-function exportData() {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+async function exportData() {
+  const json = JSON.stringify(state, null, 2);
+  const name = `kinshu-backup-${todayStr()}.json`;
+  const markDone = () => { state.lastBackupAt = todayStr(); save(); toast(t('backup.saved')); };
+
+  /* スマホでは共有シート経由（Googleドライブ・LINE・メール等に直接送れる） */
+  if (navigator.canShare && navigator.share) {
+    try {
+      const file = new File([json], name, { type: 'application/json' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: t('backup.shareTitle') });
+        markDone();
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;   // ユーザーが共有をキャンセル
+      /* 共有に失敗したらダウンロード保存にフォールバック */
+    }
+  }
+  const blob = new Blob([json], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `kinshu-backup-${todayStr()}.json`;
+  a.download = name;
   a.click();
   URL.revokeObjectURL(a.href);
-  toast(t('backup.saved'));
+  markDone();
+}
+
+/* 記録が溜まってきたら、月1回だけバックアップをそっと促す */
+function maybeNudgeBackup() {
+  if (!state.onboarded) return;
+  if (Object.keys(state.logs).length < 3 && elapsedDays() < 7) return;
+  const today = todayStr();
+  if (state.lastBackupAt && diffDays(today, state.lastBackupAt) < 30) return;
+  if (state.backupNudgedAt && diffDays(today, state.backupNudgedAt) < 7) return;
+  state.backupNudgedAt = today;
+  save();
+  setTimeout(() => toast(t('backup.nudge'), { label: t('backup.nudgeBtn'), fn: exportData }), 3000);
 }
 
 function importData(file) {
@@ -840,7 +912,10 @@ function importData(file) {
       if (!data || typeof data !== 'object' || !data.startDate || typeof data.logs !== 'object') {
         toast(t('backup.invalid')); return;
       }
-      state = { ...defaultState, ...data, version: STATE_VERSION, onboarded: true };
+      /* 今のデータを消して置き換える操作なので、必ず一度確認する */
+      const n = Object.keys(data.logs).length;
+      if (!confirm(t('backup.confirmLoad', { n, date: data.startDate }))) return;
+      state = { ...defaultState, deviceSalt: state.deviceSalt, ...data, version: STATE_VERSION, onboarded: true };
       save(); applyTheme(); applyLang(); updateDerived(); render();
       closeSheet('#settingsSheet');
       toast(t('backup.loaded'));
@@ -877,7 +952,33 @@ function maybeNotify() {
   save();
   const days = currentDays();
   const body = days > 0 ? t('notif.body', { n: days }) : t('notif.body0');
-  try { new Notification(t('notif.title'), { body, tag: 'kinshu-daily' }); } catch (e) { /* SW通知が必要なブラウザもある */ }
+  showNotif(t('notif.title'), body);
+}
+
+/* Android ChromeはService Worker経由でないと通知を出せないため、SW優先で表示 */
+function showNotif(title, body) {
+  const opts = { body, tag: 'kinshu-daily', icon: 'icon-192.png', badge: 'icon-192.png' };
+  const fallback = () => { try { new Notification(title, opts); } catch (e) {} };
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistration()
+      .then(reg => { if (reg && reg.showNotification) reg.showNotification(title, opts); else fallback(); })
+      .catch(fallback);
+  } else fallback();
+}
+
+/* 対応端末（Androidのホーム画面追加済みPWA）では、アプリを閉じていても
+   ブラウザが定期的にSWを起こして通知できるようPeriodic Background Syncを登録 */
+async function updatePeriodicSync() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    if (!('periodicSync' in reg)) return;
+    if (state.reminderOn) {
+      await reg.periodicSync.register('kinshu-reminder', { minInterval: 12 * 60 * 60 * 1000 });
+    } else {
+      await reg.periodicSync.unregister('kinshu-reminder');
+    }
+  } catch (e) { /* 未対応・権限なしの環境では画面内通知のみ */ }
 }
 
 /* ═══════════════ オンボーディング ═══════════════ */
@@ -1099,6 +1200,15 @@ function init() {
   $('#saveSettings').addEventListener('click', saveSettings);
   $('#closeSettings').addEventListener('click', () => closeSheet('#settingsSheet'));
   $('#reminderOn').addEventListener('change', updateReminderUI);
+  /* 通貨を変えたら金額の入れ直しを促す（自動両替はしない） */
+  $('#currency').addEventListener('change', () => {
+    const warn = $('#currencyWarn');
+    warn.hidden = $('#currency').value === ($('#currency').dataset.init || curCode());
+    if (!warn.hidden) {
+      const f = $('#pricePerDrink');
+      f.classList.remove('pulse-attn'); void f.offsetWidth; f.classList.add('pulse-attn');
+    }
+  });
   $$('#themeSeg .seg-btn').forEach(b => b.addEventListener('click', () => {
     state.theme = b.dataset.theme;
     $$('#themeSeg .seg-btn').forEach(x => x.classList.toggle('active', x === b));
@@ -1140,8 +1250,10 @@ function init() {
   if (newly.length) { celebrate(); toast(t('badge.toast', { emoji: newly[0].emoji, title: badgeTitle(newly[0]) })); }
 
   if (!state.onboarded) showOnboarding();
+  else maybeNudgeBackup();
 
   scheduleReminder();
+  updatePeriodicSync();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleReminder(); });
   window.addEventListener('resize', () => { if ($('#stats').classList.contains('active')) renderCharts(); });
 

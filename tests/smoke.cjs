@@ -1,15 +1,20 @@
 /* 禁酒トラッカー E2Eスモークテスト
    実行: node tests/smoke.cjs (要: 起動済みローカルサーバー localhost:8130) */
-const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+/* playwright はローカル環境ではグローバル、CIでは node_modules から読み込む */
+let chromium;
+try { ({ chromium } = require('playwright')); }
+catch (e) { ({ chromium } = require('/opt/node22/lib/node_modules/playwright')); }
 const URL = process.env.TEST_URL || 'http://localhost:8130/index.html';
-const EXEC = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const EXEC = process.env.CHROME_PATH ||
+  (require('fs').existsSync('/opt/pw-browsers/chromium-1194/chrome-linux/chrome')
+    ? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' : '');
 let failures = [];
 function check(name, cond) {
   console.log((cond ? '  ok ' : '  NG ') + name);
   if (!cond) failures.push(name);
 }
 (async () => {
-  const browser = await chromium.launch({ executablePath: EXEC });
+  const browser = await chromium.launch(EXEC ? { executablePath: EXEC } : {});
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: 'ja-JP' });
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
@@ -195,6 +200,7 @@ function check(name, cond) {
   check('EN: html langがen', (await page.evaluate(() => document.documentElement.lang)) === 'en');
   check('EN: タイトル英語化', (await page.textContent('.app-header h1')).includes('Sober Tracker'));
   check('EN: ナビ英語化', (await page.textContent('.nav-item[data-tab="home"] .nav-label')) === 'Home');
+  check('EN: マニフェストが英語版に切替', (await page.$eval('#manifestLink', el => el.href)).endsWith('manifest-en.json'));
   await page.click('#closeSettings');
   await page.waitForTimeout(200);
   check('EN: 記録ボタン英語化', (await page.textContent('#recordTodayBtn')).includes('Log today'));
@@ -206,6 +212,7 @@ function check(name, cond) {
   await page.click('#langSeg .seg-btn[data-lang="ja"]');
   await page.waitForTimeout(300);
   check('JA復帰: タイトル日本語', (await page.textContent('.app-header h1')).includes('禁酒トラッカー'));
+  check('JA復帰: マニフェストが日本語版に戻る', (await page.$eval('#manifestLink', el => el.href)).endsWith('manifest.json'));
   await page.click('#closeSettings');
 
   // ── 10. 英語ロケールの新規ユーザー（自動判定＋USD） ──
@@ -276,7 +283,9 @@ function check(name, cond) {
     raw: await page.evaluate(() => localStorage.getItem('kinshu_v1')),
   };
   const swSource = await page.evaluate(() => fetch('sw.js').then(r => r.text()));
-  check('sw.jsはlocalStorage/indexedDBに触れない設計', !/localStorage|indexedDB/.test(swSource));
+  // SWは記録本体（localStorageのkinshu_v1）には一切触れない設計。
+  // （通知用の別置き設定 kinshu-sw のIndexedDBのみ使用可）
+  check('sw.jsは記録データに触れない設計', !/localStorage|kinshu_v1/.test(swSource));
   await page.evaluate(async () => {
     // 新バージョンが降ってきて古いキャッシュを丸ごと入れ替える状況を再現
     const keys = await caches.keys();
@@ -294,6 +303,72 @@ function check(name, cond) {
   check('SW更新後も記録データ(生データ)が完全一致', beforeUpdate.raw === afterUpdate.raw);
   check('SW更新後も通算日数が変わらない', beforeUpdate.total === afterUpdate.total);
   check('SW更新後も節約額が変わらない', beforeUpdate.money === afterUpdate.money);
+
+  // ── 13. 通貨変更の警告表示 ──
+  await page.click('#settingsBtn');
+  await page.waitForTimeout(300);
+  check('通貨警告: 初期状態は非表示', await page.$eval('#currencyWarn', el => el.hidden));
+  await page.selectOption('#currency', 'USD');
+  check('通貨警告: 変更すると表示', !(await page.$eval('#currencyWarn', el => el.hidden)));
+  await page.selectOption('#currency', 'JPY');
+  check('通貨警告: 元に戻すと消える', await page.$eval('#currencyWarn', el => el.hidden));
+
+  // ── 14. バックアップ読み込みの確認ダイアログ ──
+  const fixture = require('path').join(require('os').tmpdir(), 'kinshu-import-test.json');
+  const fixDate = new Date(Date.now() - 8 * 86400000).toISOString().slice(0, 10);
+  require('fs').writeFileSync(fixture, JSON.stringify({
+    startDate: fixDate, drinksPerDay: 2, pricePerDrink: 300, calPerDrink: 100,
+    logs: { [fixDate]: { mood: 4, craving: 2, note: 'インポートテスト', triggers: [] } },
+    relapses: [], goalDays: 30,
+  }));
+  const beforeImport = await page.evaluate(() => localStorage.getItem('kinshu_v1'));
+  page.once('dialog', d => d.dismiss());        // (a) キャンセル
+  await page.setInputFiles('#importFile', fixture);
+  await page.waitForTimeout(500);
+  check('読み込みをキャンセル→データは無変更', (await page.evaluate(() => localStorage.getItem('kinshu_v1'))) === beforeImport);
+  page.once('dialog', d => d.accept());          // (b) OK
+  await page.setInputFiles('#importFile', fixture);
+  await page.waitForTimeout(600);
+  check('読み込みOK→データが置き換わる', (await page.evaluate(() => JSON.parse(localStorage.getItem('kinshu_v1')).startDate)) === fixDate);
+
+  // ── 15. バックアップ促し（30日以上未保存なら月1回のトースト） ──
+  await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('kinshu_v1'));
+    s.lastBackupAt = ''; s.backupNudgedAt = '';
+    localStorage.setItem('kinshu_v1', JSON.stringify(s));
+  });
+  await page.reload();
+  await page.waitForTimeout(3800);   // 促しは起動3秒後に出る
+  const nudgeText = await page.textContent('#toast');
+  check('バックアップ促しトースト表示', nudgeText.includes('バックアップ'));
+  const [nudgeDl] = await Promise.all([
+    page.waitForEvent('download', { timeout: 5000 }),
+    page.click('#toast button'),
+  ]);
+  check('促しから保存できる', (nudgeDl.suggestedFilename() || '').startsWith('kinshu-backup-'));
+  check('保存日を記録（次の促しは30日後）', (await page.evaluate(() => JSON.parse(localStorage.getItem('kinshu_v1')).lastBackupAt)).length === 10);
+
+  // ── 16. 端末salt・テーマ先読み・マニフェスト ──
+  check('deviceSaltが生成・保存される', (await page.evaluate(() => (JSON.parse(localStorage.getItem('kinshu_v1')).deviceSalt || '').length)) >= 8);
+  check('生年月日なしでも端末ごとに占いが変わる', await page.evaluate(() => {
+    const d = Util.todayStr();
+    let diff = false;
+    for (let i = 0; i < 30 && !diff; i++) {   // 30日分みれば必ずどこかで差が出る
+      const a = Tarot.drawFortune('dev-aaaa', Util.addDays(d, -i));
+      const b = Tarot.drawFortune('dev-bbbb', Util.addDays(d, -i));
+      if (a.name !== b.name) diff = true;
+    }
+    return diff;
+  }));
+  const htmlSrc = await page.evaluate(() => fetch('index.html').then(r => r.text()));
+  check('テーマ先読みスクリプトがheadにある', /dataset\.theme/.test(htmlSrc.split('styles.css')[0]));
+  const manifests = await page.evaluate(async () => ({
+    ja: await fetch('manifest.json').then(r => r.json()),
+    en: await fetch('manifest-en.json').then(r => r.json()),
+  }));
+  check('マニフェストJA: 日本語名のみ', manifests.ja.short_name === '禁酒');
+  check('マニフェストEN: 英語名のみ', manifests.en.short_name === 'Sober');
+  check('maskableアイコンは専用画像', manifests.ja.icons.some(i => i.purpose === 'maskable' && i.src === 'maskable-512.png'));
 
   check('コンソールエラーなし', errors.length === 0);
   if (errors.length) console.log('errors:', errors);

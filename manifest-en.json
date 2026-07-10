@@ -1,13 +1,13 @@
 {
-  "name": "禁酒トラッカー",
-  "short_name": "禁酒",
-  "description": "禁酒の継続日数・節約・気分を記録するアプリ。データは端末内にのみ保存されます。",
+  "name": "Sober Tracker",
+  "short_name": "Sober",
+  "description": "Track your alcohol-free days, savings and mood. All data stays on your device.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f2f6f6",
   "theme_color": "#0f766e",
-  "lang": "ja",
+  "lang": "en",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

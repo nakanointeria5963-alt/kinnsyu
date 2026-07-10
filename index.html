@@ -15,9 +15,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="禁酒" />
 <title>禁酒トラッカー</title>
+<script>
+/* テーマを描画前に反映（初回表示のちらつき防止） */
+try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme) document.documentElement.dataset.theme = _s.theme; } catch (e) {}
+</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-<link rel="manifest" href="manifest.json" />
+<link rel="manifest" href="manifest.json" id="manifestLink" />
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -336,6 +340,7 @@
         <option value="KRW">₩ Won (KRW)</option>
       </select>
     </label>
+    <p class="hint hint-warn" id="currencyWarn" hidden data-i18n="set.currencyWarn">⚠️ 通貨を変えたら、下の「1杯あたりの金額」と「ごほうびの金額」も新しい通貨の数字で入力し直してください（自動では両替されません）</p>
     <label class="field"><span data-i18n="set.drinksPerDay">1日あたりの平均飲酒量（杯）</span><input type="number" id="drinksPerDay" min="0" step="0.5" value="3" /></label>
     <label class="field"><span data-i18n="set.pricePerDrink">1杯あたりの金額</span><input type="number" id="pricePerDrink" min="0" step="1" value="500" /></label>
     <label class="field"><span data-i18n="set.calPerDrink">1杯あたりのカロリー（kcal）</span><input type="number" id="calPerDrink" min="0" step="10" value="150" /></label>
