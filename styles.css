@@ -206,7 +206,10 @@ main { padding: 4px 16px 8px; }
 .advice-refresh.spin { animation: spin .5s ease; }
 @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 .advice-body { white-space: pre-line; font-size: .93rem; line-height: 1.8; }
-.advice-note { font-size: .74rem; color: var(--muted); margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.advice-note {
+  font-size: .76rem; color: var(--muted); line-height: 1.6; margin-top: 14px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+}
 
 /* ═══════════════ タロット（めくり） ═══════════════ */
 .fortune-card {

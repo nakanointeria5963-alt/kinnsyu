@@ -370,6 +370,23 @@ function check(name, cond) {
   check('マニフェストEN: 英語名のみ', manifests.en.short_name === 'Sober');
   check('maskableアイコンは専用画像', manifests.ja.icons.some(i => i.purpose === 'maskable' && i.src === 'maskable-512.png'));
 
+  // ── 17. 「今日のアドバイス」: AI表記の削除・断定表現の抑制・コンテンツ量 ──
+  const adviceTitle = await page.textContent('.advice-title');
+  check('アドバイス見出しから「AI」表記を削除', adviceTitle.trim() === '今日のアドバイス');
+  const adviceNote = await page.textContent('.advice-note');
+  check('免責文が「診断や治療ではない」旨を明記', adviceNote.includes('診断') && adviceNote.includes('治療'));
+  // 「別のアドバイスに切り替え」を12回押しても、豆知識が極端に早く一巡しないことを確認
+  // （豆知識プールは26個に拡充済み。直近12個を除外する仕組みなので、12回中は基本的に重複しないはず）
+  const seenTrivia = new Set();
+  for (let i = 0; i < 12; i++) {
+    await page.click('#adviceRefresh');
+    await page.waitForTimeout(120);
+    const body = await page.textContent('#adviceBody');
+    const line = body.split('\n').find(l => l.startsWith('💡'));
+    if (line) seenTrivia.add(line);
+  }
+  check('豆知識: 12回切替で10種類以上出る(量の底上げ確認)', seenTrivia.size >= 10, `size=${seenTrivia.size}`);
+
   check('コンソールエラーなし', errors.length === 0);
   if (errors.length) console.log('errors:', errors);
   console.log(failures.length ? `\n✗ ${failures.length} 件失敗` : '\n✓ 全テスト合格');

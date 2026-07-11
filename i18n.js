@@ -58,9 +58,9 @@ window.I18N = (() => {
     'stat.drinks': '飲まなかった杯数',
     'stat.rate': '開始からの禁酒率',
 
-    'advice.title': 'AIの今日のアドバイス',
+    'advice.title': '今日のアドバイス',
     'advice.sub': '継続日数と年齢に合わせて',
-    'advice.note': '※一般的な健康情報です。強い離脱症状があるときは医療機関にご相談ください。',
+    'advice.note': 'ℹ️ ここでの内容は一般的な情報の紹介であり、診断や治療を行うものではありません。体調に不安があるときや強い症状があるときは、自己判断せず医療機関にご相談ください。',
     'advice.refreshAria': '別のアドバイスに切り替え',
 
     'fortune.title': '🔮 今日のタロット',
@@ -300,9 +300,9 @@ window.I18N = (() => {
     'stat.drinks': 'Drinks avoided',
     'stat.rate': 'Sober rate since start',
 
-    'advice.title': 'Today’s AI advice',
+    'advice.title': 'Today’s advice',
     'advice.sub': 'Tailored to your streak and age',
-    'advice.note': 'General health information only. If you have severe withdrawal symptoms, please see a doctor.',
+    'advice.note': 'ℹ️ This content is general information, not a diagnosis or treatment. If you’re unsure about your health or have severe symptoms, please don’t self-diagnose — see a doctor.',
     'advice.refreshAria': 'Get different advice',
 
     'fortune.title': '🔮 Daily Tarot',
