@@ -152,7 +152,7 @@ window.I18N = (() => {
     'relapse.notePh': '例: 仕事の飲み会で断れなかった',
     'relapse.save': '記録して再開する',
     'relapse.cancel': 'やめる',
-    'relapse.toast': '記録しました。また今日から、一歩ずつ 🌱',
+    'relapse.toast': '記録しました。\nまた今日から、一歩ずつ 🌱',
     'relapse.undo': '取り消す',
     'relapse.undone': '取り消しました',
 
@@ -394,7 +394,7 @@ window.I18N = (() => {
     'relapse.notePh': 'e.g. couldn’t say no at a work dinner',
     'relapse.save': 'Log it & restart',
     'relapse.cancel': 'Cancel',
-    'relapse.toast': 'Logged. One step at a time, starting today 🌱',
+    'relapse.toast': 'Logged.\nOne step at a time, starting today 🌱',
     'relapse.undo': 'Undo',
     'relapse.undone': 'Undone',
 

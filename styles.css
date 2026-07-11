@@ -581,7 +581,11 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
   animation: rcIconPop .5s .1s backwards cubic-bezier(.2, 1.8, .4, 1);
 }
 @keyframes rcIconPop { from { transform: scale(0) rotate(-15deg); } to { transform: scale(1) rotate(0); } }
-.rc-msg { font-size: 1.02rem; font-weight: 700; color: var(--text); line-height: 1.6; margin-bottom: 22px; }
+.rc-msg {
+  font-size: 1.02rem; font-weight: 700; color: var(--text); line-height: 1.7; margin-bottom: 22px;
+  white-space: pre-line;         /* 文章内の改行位置をそのまま使う */
+  text-wrap: balance;            /* 収まらない場合も行の長さを揃えて折り返す */
+}
 .rc-actions { display: flex; align-items: center; justify-content: center; gap: 10px; }
 .rc-undo {
   flex: 1; background: var(--primary); color: #fff; border: none; border-radius: 99px;
