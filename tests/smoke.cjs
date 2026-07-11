@@ -71,6 +71,8 @@ function check(name, cond) {
   check('タロットがめくれる', await page.$eval('#tarotFlip', el => el.classList.contains('flipped')));
   check('シャッフル演出は終了している', !(await page.$eval('#tarotFlip', el => el.classList.contains('shuffling'))));
   check('カード名表示', ((await page.textContent('#fortuneName')) || '').length > 1);
+  const luckyText = await page.textContent('#fortuneLucky');
+  check('ラッキーカラーに名前が表示される(値なしのカンマ落ちバグの再発防止)', /ラッキーカラー: \S/.test(luckyText), luckyText);
   await page.reload(); await page.waitForTimeout(500);
   check('リロード後もめくれたまま', await page.$eval('#tarotFlip', el => el.classList.contains('flipped')));
 
@@ -234,6 +236,18 @@ function check(name, cond) {
   await pageEn.close();
 
   // ── 11. タロット78枚デッキ＋大吉ジャックポット ──
+  const colorCheck = await page.evaluate(() => {
+    let missingJa = 0, missingEn = 0;
+    for (let i = 0; i < 200; i++) {
+      const d = Util.addDays(Util.todayStr(), -i);
+      if (!Tarot.drawFortune('1985-03-10', d, 'ja').color.name) missingJa++;
+      if (!Tarot.drawFortune('1985-03-10', d, 'en').color.name) missingEn++;
+    }
+    return { missingJa, missingEn };
+  });
+  check('ラッキーカラー: 日本語名が全日で解決される', colorCheck.missingJa === 0, `missing=${colorCheck.missingJa}`);
+  check('ラッキーカラー: 英語名が全日で解決される', colorCheck.missingEn === 0, `missing=${colorCheck.missingEn}`);
+
   const variety = await page.evaluate(() => {
     let minor = 0, major = 0, jack = 0;
     for (let i = 0; i < 400; i++) {

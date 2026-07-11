@@ -147,7 +147,8 @@ function drawFortune(birthDate, dateStr, lang = 'ja') {
   const index = Math.floor(rand() * DECK_SIZE);
   let reversed = rand() < 0.35;
   const advice = FORTUNE_ADVICE[L][Math.floor(rand() * FORTUNE_ADVICE.ja.length)];
-  const color = LUCKY_COLORS[Math.floor(rand() * LUCKY_COLORS.length)];
+  const colorRaw = LUCKY_COLORS[Math.floor(rand() * LUCKY_COLORS.length)];
+  const color = { hex: colorRaw.hex, name: colorRaw[L] };
   const item = LUCKY_ITEMS[L][Math.floor(rand() * LUCKY_ITEMS.ja.length)];
   const luckyNumber = Math.floor(rand() * 9) + 1;
 
