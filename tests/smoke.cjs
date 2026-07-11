@@ -283,11 +283,55 @@ function check(name, cond) {
     await page.waitForTimeout(1700);
     check('大吉: ジャックポット演出が表示', !(await page.$eval('#jackpotOverlay', el => el.classList.contains('hidden'))));
     check('大吉: カードが金色仕様', await page.$eval('#tarotVisual', el => el.classList.contains('gold')));
+    check('大吉: 演出優先のため線画アイコンには差し替えない', !(await page.$eval('#tarotVisual', el => el.classList.contains('major'))));
     const jpTitle = await page.textContent('.jp-title');
     check('大吉: タイトル表示', jpTitle.includes('大吉') || jpTitle.includes('JACKPOT'));
     await page.click('#jackpotOverlay');
     await page.waitForTimeout(300);
     check('大吉: タップで演出が閉じる', await page.$eval('#jackpotOverlay', el => el.classList.contains('hidden')));
+  }
+
+  // ── 11b. 大アルカナの線画アイコン(大吉を除く)・小アルカナは絵文字のまま ──
+  const majorBirth = await page.evaluate(() => {
+    for (let y = 1950; y < 2010; y++) for (let m = 1; m <= 12; m++) {
+      const b = `${y}-${String(m).padStart(2, '0')}-03`;
+      const f = Tarot.drawFortune(b, Util.todayStr());
+      if (f.card.kind === 'major' && !f.jackpot) return b;
+    }
+    return null;
+  });
+  check('大アルカナ(非大吉)になる誕生日が見つかる', !!majorBirth, majorBirth);
+  if (majorBirth) {
+    await page.evaluate((b) => {
+      const s = JSON.parse(localStorage.getItem('kinshu_v1'));
+      s.birthDate = b; s.tarotFlipped = ''; s.advice = null;
+      localStorage.setItem('kinshu_v1', JSON.stringify(s));
+    }, majorBirth);
+    await page.reload(); await page.waitForTimeout(500);
+    await page.click('#tarotFlip');
+    await page.waitForTimeout(900);
+    check('大アルカナ: カードに.majorクラスが付く', await page.$eval('#tarotVisual', el => el.classList.contains('major')));
+    check('大アルカナ: 線画SVGアイコンが描画される', await page.$eval('#tarotEmoji', el => !!el.querySelector('svg')));
+  }
+  const minorBirth = await page.evaluate(() => {
+    for (let y = 1950; y < 2010; y++) for (let m = 1; m <= 12; m++) {
+      const b = `${y}-${String(m).padStart(2, '0')}-07`;
+      if (Tarot.drawFortune(b, Util.todayStr()).card.kind === 'minor') return b;
+    }
+    return null;
+  });
+  check('小アルカナになる誕生日が見つかる', !!minorBirth, minorBirth);
+  if (minorBirth) {
+    await page.evaluate((b) => {
+      const s = JSON.parse(localStorage.getItem('kinshu_v1'));
+      s.birthDate = b; s.tarotFlipped = ''; s.advice = null;
+      localStorage.setItem('kinshu_v1', JSON.stringify(s));
+    }, minorBirth);
+    await page.reload(); await page.waitForTimeout(500);
+    await page.click('#tarotFlip');
+    await page.waitForTimeout(900);
+    check('小アルカナ: .majorクラスは付かない', !(await page.$eval('#tarotVisual', el => el.classList.contains('major'))));
+    check('小アルカナ: 絵文字のまま(SVGなし)', !(await page.$eval('#tarotEmoji', el => !!el.querySelector('svg'))));
   }
 
   // ── 12. Service Worker更新（キャッシュ総入れ替え）でも記録データは消えないか検証 ──

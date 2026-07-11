@@ -12,7 +12,7 @@ const swPath = path.join(root, 'sw.js');
 
 /* ハッシュ対象: sw.js 自身を除く配信ファイルすべて */
 const FILES = [
-  'index.html', 'styles.css', 'i18n.js', 'util.js', 'app.js', 'tarot.js', 'advisor.js',
+  'index.html', 'styles.css', 'i18n.js', 'util.js', 'app.js', 'tarot-icons.js', 'tarot.js', 'advisor.js',
   'manifest.json', 'manifest-en.json',
   'icon-192.png', 'icon-512.png', 'maskable-512.png', 'apple-touch-icon.png',
 ];

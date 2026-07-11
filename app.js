@@ -355,7 +355,12 @@ function fillFortune() {
   const f = Tarot.drawFortune(state.birthDate || 'dev-' + state.deviceSalt, todayStr(), I18N.lang());
   $('#tarotVisual').classList.toggle('reversed', f.reversed);
   $('#tarotVisual').classList.toggle('gold', f.jackpot);
-  $('#tarotEmoji').textContent = f.card.emoji;
+  /* 大吉の日は既存の金カード演出を維持するため線画アイコンには差し替えない */
+  const useIcon = f.card.kind === 'major' && !f.jackpot && window.TarotIcons && TarotIcons[f.card.numLabel];
+  $('#tarotVisual').classList.toggle('major', !!useIcon);
+  const emojiEl = $('#tarotEmoji');
+  if (useIcon) emojiEl.innerHTML = TarotIcons[f.card.numLabel];
+  else emojiEl.textContent = f.card.emoji;
   $('#tarotNum').textContent = f.card.numLabel;
   const chip = f.jackpot ? `<span class="jp-chip">${escapeHtml(t('fortune.jackpotChip'))}</span>` : '';
   $('#fortuneName').innerHTML = `${escapeHtml(f.name)}<span class="orient">（${t(f.reversed ? 'fortune.reversed' : 'fortune.upright')}）</span>${chip}`;
