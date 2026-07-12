@@ -199,7 +199,7 @@ function check(name, cond) {
   check('✕ボタンで確認カードが閉じる', await page.$eval('#relapseConfirm', el => el.classList.contains('hidden')));
   check('✕ボタンはundoしない: 連続0日のまま', (await page.textContent('#chipStreak b')) === '0');
 
-  // ── 7h. 肝臓イラスト自体をタップするとポップアップ(タップ前は脈打つ演出→タップ後はイメージ図の隣の小さいアイコンに切替) ──
+  // ── 7h. 肝臓イラスト自体をタップするとポップアップ(タップ前は脈打つ演出とタップ表示→タップ後もイラストは押せる+隣に小さいアイコンも追加) ──
   check('肝臓: 見出しが断定的な医学表現を避けている', !(await page.textContent('#liverCaption')).includes('健康な肝臓'));
   check('肝臓: 初回はheroSideにliver-seenクラスなし(脈打つ演出あり)', !(await page.$eval('#heroSide', el => el.classList.contains('liver-seen'))));
   check('肝臓: 初回はタップボタンが表示されている', await page.$eval('#liverInfoBtn', el => el.offsetParent !== null));
@@ -209,14 +209,22 @@ function check(name, cond) {
   await page.waitForTimeout(300);
   check('肝臓: ボタンタップでポップアップが開く', !(await page.$eval('#liverInfoSheet', el => el.classList.contains('hidden'))));
   check('肝臓: 一度タップ後はheroSideにliver-seenクラスが付く', await page.$eval('#heroSide', el => el.classList.contains('liver-seen')));
-  check('肝臓: タップ後はタップボタンが消える', await page.$eval('#liverInfoBtn', el => el.offsetParent === null));
-  check('肝臓: タップ後はイメージ図隣のアイコンが表示される', await page.$eval('#liverInfoIcon', el => el.offsetParent !== null));
+  await page.click('#closeLiverInfo');
+  await page.waitForTimeout(300);
+  check('肝臓: タップ後は「タップ」ラベルが消える', await page.$eval('.liver-tap-label', el => getComputedStyle(el).display === 'none'));
+  check('肝臓: タップ後もイラスト自体は引き続き押せる', await page.$eval('#liverInfoBtn', el => el.offsetParent !== null));
+  check('肝臓: タップ後はイメージ図隣のアイコンも表示される', await page.$eval('#liverInfoIcon', el => el.offsetParent !== null));
+  check('肝臓: タップ後もイラスト自体を押すとポップアップが開く', await (async () => {
+    await page.click('#liverInfoBtn');
+    await page.waitForTimeout(300);
+    const opened = !(await page.$eval('#liverInfoSheet', el => el.classList.contains('hidden')));
+    await page.click('#closeLiverInfo');
+    await page.waitForTimeout(300);
+    return opened;
+  })());
   const liverBody = await page.textContent('.liver-info-body');
   check('肝臓: 注意書きに「医学的な診断ではない」旨を明記', liverBody.includes('医学的な診断'));
   check('肝臓: 注意書きに受診の案内を明記', liverBody.includes('医療機関'));
-  await page.click('#closeLiverInfo');
-  await page.waitForTimeout(300);
-  check('肝臓: 閉じるボタンでポップアップが閉じる', await page.$eval('#liverInfoSheet', el => el.classList.contains('hidden')));
   check('肝臓: 隣のアイコンを再タップしてもポップアップが開く', await (async () => {
     await page.click('#liverInfoIcon');
     await page.waitForTimeout(300);
