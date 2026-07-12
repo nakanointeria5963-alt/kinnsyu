@@ -1,7 +1,7 @@
 /* 禁酒トラッカー Service Worker
    - ページ(HTML)はネットワーク優先: 更新が確実にユーザーに届く
    - アセットはキャッシュ優先＋裏で更新(stale-while-revalidate) */
-const CACHE = 'kinshu-50cfcb9c2a';
+const CACHE = 'kinshu-6b54f5af0b';
 const ASSETS = [
   './',
   './index.html',
@@ -21,7 +21,13 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  /* addAll()は各ファイルのHTTPキャッシュを再利用しうるため、
+     cache:'reload'で1件ずつネットワークから確実に最新を取得する */
+  e.waitUntil(
+    caches.open(CACHE)
+      .then(c => Promise.all(ASSETS.map(url => fetch(url, { cache: 'reload' }).then(res => c.put(url, res)))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', e => {

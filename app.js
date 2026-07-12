@@ -1305,18 +1305,21 @@ function init() {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleReminder(); });
   window.addEventListener('resize', () => { if ($('#stats').classList.contains('active')) renderCharts(); });
 
-  /* Service Worker 登録＋更新通知 */
+  /* Service Worker 登録＋更新通知
+     updateViaCache:'none' で sw.js自体のHTTPキャッシュ再利用を止め、
+     毎回のregister()呼び出しで確実にネットワークから真の最新版を取得する。 */
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(reg => {
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
+      const promptUpdate = () => toast(t('sw.update'), { label: t('sw.reload'), fn: () => location.reload() }, { sticky: true });
+      if (reg.waiting && navigator.serviceWorker.controller) promptUpdate();
       reg.addEventListener('updatefound', () => {
         const nw = reg.installing;
         if (!nw) return;
         nw.addEventListener('statechange', () => {
-          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
-            toast(t('sw.update'), { label: t('sw.reload'), fn: () => location.reload() }, { sticky: true });
-          }
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) promptUpdate();
         });
       });
+      reg.update().catch(() => {});
     }).catch(() => {});
   }
 }
