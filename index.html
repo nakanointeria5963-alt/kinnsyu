@@ -54,8 +54,8 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
               <span class="ring-sub" id="ringSub"></span>
             </div>
           </div>
-          <div class="hero-side">
-            <button type="button" class="liver-tap-wrap" id="liverInfoBtn" aria-haspopup="dialog" data-i18n-aria="liver.infoAria">
+          <div class="hero-side" id="heroSide">
+            <div class="liver-visual">
               <svg class="liver-svg" viewBox="0 0 110 92" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <defs>
                   <radialGradient id="liverShade" cx="38%" cy="30%" r="78%">
@@ -76,10 +76,15 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
                   <path d="M55,18 C52,31 50,45 48,60" stroke="rgba(0,0,0,0.13)" stroke-width="1.2" fill="none" />
                 </g>
               </svg>
-              <span class="liver-tap-label" data-i18n="liver.tapLabel">タップ</span>
-            </button>
+              <button type="button" class="liver-tap-btn" id="liverInfoBtn" aria-haspopup="dialog" data-i18n-aria="liver.infoAria">
+                <span class="liver-tap-label" data-i18n="liver.tapLabel">タップ</span>
+              </button>
+            </div>
             <p class="liver-caption" id="liverCaption"></p>
-            <p class="liver-note" data-i18n="liver.note">※イメージ図</p>
+            <p class="liver-note">
+              <span data-i18n="liver.note">※イメージ図</span>
+              <button type="button" class="liver-info-btn" id="liverInfoIcon" aria-haspopup="dialog" data-i18n-aria="liver.infoAria">ℹ️</button>
+            </p>
           </div>
         </div>
         <div class="hero-chips">

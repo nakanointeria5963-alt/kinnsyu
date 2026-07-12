@@ -1,7 +1,7 @@
 /* 禁酒トラッカー Service Worker
    - ページ(HTML)はネットワーク優先: 更新が確実にユーザーに届く
    - アセットはキャッシュ優先＋裏で更新(stale-while-revalidate) */
-const CACHE = 'kinshu-2790e10e69';
+const CACHE = 'kinshu-e65242bae3';
 const ASSETS = [
   './',
   './index.html',

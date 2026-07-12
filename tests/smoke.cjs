@@ -199,23 +199,34 @@ function check(name, cond) {
   check('✕ボタンで確認カードが閉じる', await page.$eval('#relapseConfirm', el => el.classList.contains('hidden')));
   check('✕ボタンはundoしない: 連続0日のまま', (await page.textContent('#chipStreak b')) === '0');
 
-  // ── 7h. 肝臓イラスト自体をタップするとポップアップ(タップ前は脈打つ演出、ポップアップに医学的でない注意書き) ──
+  // ── 7h. 肝臓イラスト自体をタップするとポップアップ(タップ前は脈打つ演出→タップ後はイメージ図の隣の小さいアイコンに切替) ──
   check('肝臓: 見出しが断定的な医学表現を避けている', !(await page.textContent('#liverCaption')).includes('健康な肝臓'));
-  check('肝臓: タップボタンは肝臓イラスト(SVG)を内包', await page.$eval('#liverInfoBtn', el => el.querySelector('.liver-svg') != null));
+  check('肝臓: 初回はheroSideにliver-seenクラスなし(脈打つ演出あり)', !(await page.$eval('#heroSide', el => el.classList.contains('liver-seen'))));
+  check('肝臓: 初回はタップボタンが表示されている', await page.$eval('#liverInfoBtn', el => el.offsetParent !== null));
   check('肝臓: 「タップ」ラベルが表示されている', (await page.textContent('#liverInfoBtn')).includes('タップ'));
-  check('肝臓: 初回はまだseenクラスなし(脈打つ演出あり)', !(await page.$eval('#liverInfoBtn', el => el.classList.contains('seen'))));
+  check('肝臓: 初回はイメージ図隣のアイコンは非表示', await page.$eval('#liverInfoIcon', el => el.offsetParent === null));
   await page.click('#liverInfoBtn');
   await page.waitForTimeout(300);
   check('肝臓: ボタンタップでポップアップが開く', !(await page.$eval('#liverInfoSheet', el => el.classList.contains('hidden'))));
-  check('肝臓: 一度タップ後はseenクラスが付く(脈打ちが止まる)', await page.$eval('#liverInfoBtn', el => el.classList.contains('seen')));
+  check('肝臓: 一度タップ後はheroSideにliver-seenクラスが付く', await page.$eval('#heroSide', el => el.classList.contains('liver-seen')));
+  check('肝臓: タップ後はタップボタンが消える', await page.$eval('#liverInfoBtn', el => el.offsetParent === null));
+  check('肝臓: タップ後はイメージ図隣のアイコンが表示される', await page.$eval('#liverInfoIcon', el => el.offsetParent !== null));
   const liverBody = await page.textContent('.liver-info-body');
   check('肝臓: 注意書きに「医学的な診断ではない」旨を明記', liverBody.includes('医学的な診断'));
   check('肝臓: 注意書きに受診の案内を明記', liverBody.includes('医療機関'));
   await page.click('#closeLiverInfo');
   await page.waitForTimeout(300);
   check('肝臓: 閉じるボタンでポップアップが閉じる', await page.$eval('#liverInfoSheet', el => el.classList.contains('hidden')));
+  check('肝臓: 隣のアイコンを再タップしてもポップアップが開く', await (async () => {
+    await page.click('#liverInfoIcon');
+    await page.waitForTimeout(300);
+    const opened = !(await page.$eval('#liverInfoSheet', el => el.classList.contains('hidden')));
+    await page.click('#closeLiverInfo');
+    await page.waitForTimeout(300);
+    return opened;
+  })());
   await page.reload(); await page.waitForTimeout(600);
-  check('肝臓: リロード後もseen状態を保持', await page.$eval('#liverInfoBtn', el => el.classList.contains('seen')));
+  check('肝臓: リロード後もliver-seen状態を保持', await page.$eval('#heroSide', el => el.classList.contains('liver-seen')));
 
   // ── 7i. 「すべてのデータを削除」で肝臓イラストの脈打つ演出も最初の状態に戻る ──
   page.once('dialog', d => d.accept());
@@ -223,7 +234,7 @@ function check(name, cond) {
   await page.waitForTimeout(300);
   await page.click('#resetAll');
   await page.waitForTimeout(500);
-  check('肝臓: 「すべてのデータを削除」でseenクラスが外れ、再び脈打つ状態に戻る', !(await page.$eval('#liverInfoBtn', el => el.classList.contains('seen'))));
+  check('肝臓: 「すべてのデータを削除」でliver-seenクラスが外れ、再び脈打つ状態に戻る', !(await page.$eval('#heroSide', el => el.classList.contains('liver-seen'))));
 
   // ── 8. 既存ユーザーの移行（旧形式localStorage） ──
   await page.evaluate(() => {

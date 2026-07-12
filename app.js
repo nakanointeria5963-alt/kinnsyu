@@ -232,8 +232,8 @@ function renderLiver(days) {
   $('#liverCaption').innerHTML = remain > 0 ? t('liver.remain', { n: remain }) : t('liver.done');
 }
 function renderLiverInfoBtn() {
-  const btn = $('#liverInfoBtn');
-  if (btn) btn.classList.toggle('seen', !!state.liverNoticeSeen);
+  const wrap = $('#heroSide');
+  if (wrap) wrap.classList.toggle('liver-seen', !!state.liverNoticeSeen);
 }
 
 /* --- 直近7日ストリップ（タップでその日の記録へ） --- */
@@ -1208,10 +1208,12 @@ function init() {
   $('#closeRelapse').addEventListener('click', () => closeSheet('#relapseSheet'));
 
   /* 肝臓イラストの注意書き */
-  $('#liverInfoBtn').addEventListener('click', () => {
+  const openLiverInfo = () => {
     if (!state.liverNoticeSeen) { state.liverNoticeSeen = true; save(); renderLiverInfoBtn(); }
     openSheet('#liverInfoSheet');
-  });
+  };
+  $('#liverInfoBtn').addEventListener('click', openLiverInfo);
+  $('#liverInfoIcon').addEventListener('click', openLiverInfo);
   $('#closeLiverInfo').addEventListener('click', () => closeSheet('#liverInfoSheet'));
 
   /* SOS */
