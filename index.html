@@ -55,31 +55,31 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
             </div>
           </div>
           <div class="hero-side">
-            <svg class="liver-svg" viewBox="0 0 110 92" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="肝臓の回復イメージ">
-              <defs>
-                <radialGradient id="liverShade" cx="38%" cy="30%" r="78%">
-                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.4" />
-                  <stop offset="45%" stop-color="#ffffff" stop-opacity="0" />
-                  <stop offset="100%" stop-color="#000000" stop-opacity="0.42" />
-                </radialGradient>
-                <clipPath id="liverClip">
-                  <path d="M6,42 C4,27 17,16 33,15 C41,14.5 47,17 53,17 L55,12 L58,17 C73,17 97,18 101,35 C104,47 92,62 69,63 C49,64 29,63 17,58 C9,54 7,50 6,42 Z" />
-                </clipPath>
-              </defs>
-              <ellipse cx="60" cy="62" rx="8" ry="11" transform="rotate(18 60 62)" fill="#8a9a45" />
-              <path id="liverBody" d="M6,42 C4,27 17,16 33,15 C41,14.5 47,17 53,17 L55,12 L58,17 C73,17 97,18 101,35 C104,47 92,62 69,63 C49,64 29,63 17,58 C9,54 7,50 6,42 Z" fill="#2b1810" />
-              <g clip-path="url(#liverClip)">
-                <rect x="0" y="0" width="110" height="92" fill="url(#liverShade)" />
-                <path d="M20,50 C40,44 66,46 92,40" stroke="rgba(0,0,0,0.15)" stroke-width="1.5" fill="none" />
-                <path d="M30,56 C46,52 62,52 82,50" stroke="rgba(0,0,0,0.12)" stroke-width="1.2" fill="none" />
-                <path d="M55,18 C52,31 50,45 48,60" stroke="rgba(0,0,0,0.13)" stroke-width="1.2" fill="none" />
-              </g>
-            </svg>
+            <button type="button" class="liver-tap-wrap" id="liverInfoBtn" aria-haspopup="dialog" data-i18n-aria="liver.infoAria">
+              <svg class="liver-svg" viewBox="0 0 110 92" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <defs>
+                  <radialGradient id="liverShade" cx="38%" cy="30%" r="78%">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.4" />
+                    <stop offset="45%" stop-color="#ffffff" stop-opacity="0" />
+                    <stop offset="100%" stop-color="#000000" stop-opacity="0.42" />
+                  </radialGradient>
+                  <clipPath id="liverClip">
+                    <path d="M6,42 C4,27 17,16 33,15 C41,14.5 47,17 53,17 L55,12 L58,17 C73,17 97,18 101,35 C104,47 92,62 69,63 C49,64 29,63 17,58 C9,54 7,50 6,42 Z" />
+                  </clipPath>
+                </defs>
+                <ellipse cx="60" cy="62" rx="8" ry="11" transform="rotate(18 60 62)" fill="#8a9a45" />
+                <path id="liverBody" d="M6,42 C4,27 17,16 33,15 C41,14.5 47,17 53,17 L55,12 L58,17 C73,17 97,18 101,35 C104,47 92,62 69,63 C49,64 29,63 17,58 C9,54 7,50 6,42 Z" fill="#2b1810" />
+                <g clip-path="url(#liverClip)">
+                  <rect x="0" y="0" width="110" height="92" fill="url(#liverShade)" />
+                  <path d="M20,50 C40,44 66,46 92,40" stroke="rgba(0,0,0,0.15)" stroke-width="1.5" fill="none" />
+                  <path d="M30,56 C46,52 62,52 82,50" stroke="rgba(0,0,0,0.12)" stroke-width="1.2" fill="none" />
+                  <path d="M55,18 C52,31 50,45 48,60" stroke="rgba(0,0,0,0.13)" stroke-width="1.2" fill="none" />
+                </g>
+              </svg>
+              <span class="liver-tap-label" data-i18n="liver.tapLabel">タップ</span>
+            </button>
             <p class="liver-caption" id="liverCaption"></p>
-            <p class="liver-note">
-              <span data-i18n="liver.note">※イメージ図</span>
-              <button type="button" class="liver-info-btn" id="liverInfoBtn" aria-haspopup="dialog" data-i18n-aria="liver.infoAria">ℹ️</button>
-            </p>
+            <p class="liver-note" data-i18n="liver.note">※イメージ図</p>
           </div>
         </div>
         <div class="hero-chips">

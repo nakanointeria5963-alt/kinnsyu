@@ -199,14 +199,15 @@ function check(name, cond) {
   check('✕ボタンで確認カードが閉じる', await page.$eval('#relapseConfirm', el => el.classList.contains('hidden')));
   check('✕ボタンはundoしない: 連続0日のまま', (await page.textContent('#chipStreak b')) === '0');
 
-  // ── 7h. 肝臓イラストの注意書きアイコン(※イメージ図の隣にさりげなく配置、ポップアップに医学的でない注意書き) ──
+  // ── 7h. 肝臓イラスト自体をタップするとポップアップ(タップ前は脈打つ演出、ポップアップに医学的でない注意書き) ──
   check('肝臓: 見出しが断定的な医学表現を避けている', !(await page.textContent('#liverCaption')).includes('健康な肝臓'));
-  check('肝臓: 注意書きアイコンは※イメージ図と同じ行に配置', await page.$eval('#liverInfoBtn', el => el.closest('.liver-note') != null));
-  check('肝臓: 初回はまだseenクラスなし(目立つ大きさ)', !(await page.$eval('#liverInfoBtn', el => el.classList.contains('seen'))));
+  check('肝臓: タップボタンは肝臓イラスト(SVG)を内包', await page.$eval('#liverInfoBtn', el => el.querySelector('.liver-svg') != null));
+  check('肝臓: 「タップ」ラベルが表示されている', (await page.textContent('#liverInfoBtn')).includes('タップ'));
+  check('肝臓: 初回はまだseenクラスなし(脈打つ演出あり)', !(await page.$eval('#liverInfoBtn', el => el.classList.contains('seen'))));
   await page.click('#liverInfoBtn');
   await page.waitForTimeout(300);
   check('肝臓: ボタンタップでポップアップが開く', !(await page.$eval('#liverInfoSheet', el => el.classList.contains('hidden'))));
-  check('肝臓: 一度タップ後はseenクラスが付く(控えめな大きさに)', await page.$eval('#liverInfoBtn', el => el.classList.contains('seen')));
+  check('肝臓: 一度タップ後はseenクラスが付く(脈打ちが止まる)', await page.$eval('#liverInfoBtn', el => el.classList.contains('seen')));
   const liverBody = await page.textContent('.liver-info-body');
   check('肝臓: 注意書きに「医学的な診断ではない」旨を明記', liverBody.includes('医学的な診断'));
   check('肝臓: 注意書きに受診の案内を明記', liverBody.includes('医療機関'));
@@ -216,13 +217,13 @@ function check(name, cond) {
   await page.reload(); await page.waitForTimeout(600);
   check('肝臓: リロード後もseen状態を保持', await page.$eval('#liverInfoBtn', el => el.classList.contains('seen')));
 
-  // ── 7i. 「すべてのデータを削除」で肝臓アイコンも最初の大きい状態に戻る ──
+  // ── 7i. 「すべてのデータを削除」で肝臓イラストの脈打つ演出も最初の状態に戻る ──
   page.once('dialog', d => d.accept());
   await page.click('#settingsBtn');
   await page.waitForTimeout(300);
   await page.click('#resetAll');
   await page.waitForTimeout(500);
-  check('肝臓: 「すべてのデータを削除」でseenクラスが外れ、最初の大きい状態に戻る', !(await page.$eval('#liverInfoBtn', el => el.classList.contains('seen'))));
+  check('肝臓: 「すべてのデータを削除」でseenクラスが外れ、再び脈打つ状態に戻る', !(await page.$eval('#liverInfoBtn', el => el.classList.contains('seen'))));
 
   // ── 8. 既存ユーザーの移行（旧形式localStorage） ──
   await page.evaluate(() => {

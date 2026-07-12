@@ -38,7 +38,7 @@ const defaultState = {
   deviceSalt: '',           // 生年月日未入力でも占いが人によって変わるための端末固有値
   lastBackupAt: '',         // 最後にバックアップを保存した日
   backupNudgedAt: '',       // 最後にバックアップを促した日
-  liverNoticeSeen: false,   // 肝臓イラストの注意書きアイコンを一度タップ済みか（済みなら控えめな大きさに）
+  liverNoticeSeen: false,   // 肝臓イラストを一度タップ済みか（済みなら脈打つ演出を止める）
 };
 
 let state = load();
