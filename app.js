@@ -38,7 +38,6 @@ const defaultState = {
   deviceSalt: '',           // 生年月日未入力でも占いが人によって変わるための端末固有値
   lastBackupAt: '',         // 最後にバックアップを保存した日
   backupNudgedAt: '',       // 最後にバックアップを促した日
-  liverNoticeSeen: false,   // 肝臓イラストの注意書きボタンを一度タップ済みか（済みなら小さく表示）
 };
 
 let state = load();
@@ -199,7 +198,6 @@ function renderHero() {
     : t('hero.allBadges');
 
   renderLiver(days);
-  renderLiverInfoBtn();
 }
 
 function animateNumber(el, target) {
@@ -230,10 +228,6 @@ function renderLiver(days) {
   if (body) body.setAttribute('fill', liverColor(d));
   const remain = Math.max(0, LIVER_TARGET_DAYS - d);
   $('#liverCaption').innerHTML = remain > 0 ? t('liver.remain', { n: remain }) : t('liver.done');
-}
-function renderLiverInfoBtn() {
-  const btn = $('#liverInfoBtn');
-  if (btn) btn.classList.toggle('compact', !!state.liverNoticeSeen);
 }
 
 /* --- 直近7日ストリップ（タップでその日の記録へ） --- */
@@ -732,7 +726,9 @@ function openSos() {
       state.reasons.map(r => `<div class="sr-item">🍀 ${escapeHtml(r)}</div>`).join('')
     : `<p class="sr-title">${escapeHtml(t('sos.noReasons'))}</p>`;
   $('#breathPhase').textContent = t('sos.ready');
+  $('#breathPhase').classList.remove('breath-done');
   $('#breathCount').textContent = '60';
+  $('#sosStart').textContent = t('sos.start');
   $('#sosStart').hidden = false;
   $('#breathCircle').className = 'breath-circle';
   const ov = $('#sosOverlay');
@@ -744,6 +740,7 @@ function openSos() {
 
 function startBreathing() {
   $('#sosStart').hidden = true;
+  $('#breathPhase').classList.remove('breath-done');
   const circle = $('#breathCircle');
   const phases = [
     { name: t('sos.in'), cls: 'in', sec: 4 },
@@ -761,8 +758,11 @@ function startBreathing() {
     if (remain <= 0) {
       clearInterval(breathTimer);
       $('#breathPhase').textContent = t('sos.done');
+      $('#breathPhase').classList.add('breath-done');
       $('#breathCount').textContent = t('sos.doneSub');
       circle.className = 'breath-circle';
+      $('#sosStart').textContent = t('sos.repeat');
+      $('#sosStart').hidden = false;
       return;
     }
     if (phaseLeft <= 0) {
@@ -1202,10 +1202,7 @@ function init() {
   $('#closeRelapse').addEventListener('click', () => closeSheet('#relapseSheet'));
 
   /* 肝臓イラストの注意書き */
-  $('#liverInfoBtn').addEventListener('click', () => {
-    if (!state.liverNoticeSeen) { state.liverNoticeSeen = true; save(); renderLiverInfoBtn(); }
-    openSheet('#liverInfoSheet');
-  });
+  $('#liverInfoBtn').addEventListener('click', () => openSheet('#liverInfoSheet'));
   $('#closeLiverInfo').addEventListener('click', () => closeSheet('#liverInfoSheet'));
 
   /* SOS */

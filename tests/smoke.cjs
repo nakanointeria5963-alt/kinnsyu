@@ -103,6 +103,25 @@ function check(name, cond) {
   await page.waitForTimeout(1200);
   const phase = await page.textContent('#breathPhase');
   check('呼吸フェーズ進行', ['吸って…', '止めて', '吐いて…'].includes(phase));
+
+  // ── 5b. 深呼吸完了後: 「よく乗り越えました」を強調＋「続ける」ボタンで再開 ──
+  check('SOS: 開始/続けるボタンが閉じるボタンの直前(真ん中付近)に配置', await page.$eval('#sosStart', el => el.nextElementSibling && el.nextElementSibling.id === 'sosClose'));
+  await page.click('#sosClose');
+  await page.click('#sosBtn');
+  await page.waitForTimeout(50);
+  await page.clock.install();
+  await page.click('#sosStart');
+  await page.clock.runFor(60000);
+  check('深呼吸完了: 完了メッセージが強調表示される(breath-doneクラス)', await page.$eval('#breathPhase', el => el.classList.contains('breath-done')));
+  const repeatVisible = await page.$eval('#sosStart', el => !el.hidden);
+  const repeatLabel = await page.textContent('#sosStart');
+  check('深呼吸完了: 「続ける」ボタンが閉じるボタンの上に表示される', repeatVisible && repeatLabel.includes('続ける'));
+  await page.click('#sosStart');
+  check('「続ける」タップで深呼吸が再開する(ボタンが再び隠れる)', await page.$eval('#sosStart', el => el.hidden));
+  await page.clock.runFor(1000);
+  const phase2 = await page.textContent('#breathPhase');
+  check('再開後: 呼吸フェーズが進行する', ['吸って…', '止めて', '吐いて…'].includes(phase2));
+  await page.clock.resume();
   await page.click('#sosClose');
 
   // ── 6. カレンダー詳細 ──
@@ -180,9 +199,9 @@ function check(name, cond) {
   check('✕ボタンで確認カードが閉じる', await page.$eval('#relapseConfirm', el => el.classList.contains('hidden')));
   check('✕ボタンはundoしない: 連続0日のまま', (await page.textContent('#chipStreak b')) === '0');
 
-  // ── 7h. 肝臓イラストの注意書きボタン(初回は大きく→タップで縮小・永続化、ポップアップに医学的でない注意書き) ──
+  // ── 7h. 肝臓イラストの注意書きボタン(※イメージ図の隣にさりげなく配置、ポップアップに医学的でない注意書き) ──
   check('肝臓: 見出しが断定的な医学表現を避けている', !(await page.textContent('#liverCaption')).includes('健康な肝臓'));
-  check('肝臓: 注意書きボタンは初回は非compact', !(await page.$eval('#liverInfoBtn', el => el.classList.contains('compact'))));
+  check('肝臓: 注意書きボタンは※イメージ図と同じ行にさりげなく配置', await page.$eval('#liverInfoBtn', el => el.closest('.liver-note') != null));
   await page.click('#liverInfoBtn');
   await page.waitForTimeout(300);
   check('肝臓: ボタンタップでポップアップが開く', !(await page.$eval('#liverInfoSheet', el => el.classList.contains('hidden'))));
@@ -192,9 +211,6 @@ function check(name, cond) {
   await page.click('#closeLiverInfo');
   await page.waitForTimeout(300);
   check('肝臓: 閉じるボタンでポップアップが閉じる', await page.$eval('#liverInfoSheet', el => el.classList.contains('hidden')));
-  check('肝臓: 一度タップ後はボタンがcompactになる', await page.$eval('#liverInfoBtn', el => el.classList.contains('compact')));
-  await page.reload(); await page.waitForTimeout(600);
-  check('肝臓: compact状態は再読み込み後も保持される', await page.$eval('#liverInfoBtn', el => el.classList.contains('compact')));
 
   // ── 8. 既存ユーザーの移行（旧形式localStorage） ──
   await page.evaluate(() => {

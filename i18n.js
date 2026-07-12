@@ -36,7 +36,6 @@ window.I18N = (() => {
     'liver.done': 'リフレッシュの目安を達成 🎉',
     'liver.note': '※イメージ図',
     'liver.aria': '肝臓の回復イメージ',
-    'liver.infoBtn': 'くわしく見る',
     'liver.infoAria': '肝臓イラストについての注意事項',
     'liver.infoTitle': '肝臓イラストについて',
     'liver.infoBody': 'このイラストは、禁酒を続けるモチベーションを保つための演出です。実際の肝臓の状態や医学的な診断を示すものではありません。\n\n肝臓の回復スピードには個人差があり、飲酒量・期間や体質、持病の有無などによって大きく異なります。表示される日数は、あくまで一般的な目安としての「イメージ」です。\n\nこの演出は連続記録日数に連動しているため、記録が途切れると見た目も最初からになりますが、これはゲーム的な演出であり、実際の肝臓が振り出しに戻るという意味ではありません。\n\n体調に不安がある場合や、実際の肝臓の状態が気になる場合は、自己判断せず医療機関を受診し、医師にご相談ください。\n\n楽しみながら、無理のないペースで続けていきましょう🌱',
@@ -170,6 +169,7 @@ window.I18N = (() => {
     'sos.reasonsTitle': 'あなたが禁酒する理由：',
     'sos.noReasons': '設定で「禁酒する理由」を登録すると、ここに表示されます。',
     'sos.start': '深呼吸をはじめる',
+    'sos.repeat': 'もう一度、深呼吸を続ける',
     'sos.close': '閉じる',
 
     'set.title': '設定',
@@ -283,7 +283,6 @@ window.I18N = (() => {
     'liver.done': 'Refresh milestone reached 🎉',
     'liver.note': 'Illustration only',
     'liver.aria': 'Liver recovery illustration',
-    'liver.infoBtn': 'Learn more',
     'liver.infoAria': 'Notes about this liver illustration',
     'liver.infoTitle': 'About this liver illustration',
     'liver.infoBody': 'This illustration is a motivational visual to help you keep going with your sobriety streak. It does not represent your actual liver condition or a medical diagnosis.\n\nHow fast a liver recovers varies a lot from person to person — it depends on how much and how long someone drank, individual health, and any existing conditions. The number of days shown here is only a general, illustrative milestone, not a personalized medical estimate.\n\nThis animation is tied to your current streak, so if your streak resets, the illustration resets too. That’s just part of the game-like design — it doesn’t mean your actual liver has gone back to an unhealthy state.\n\nIf you have any health concerns or want to know your real liver condition, please don’t self-diagnose — talk to a doctor or healthcare professional.\n\nEnjoy the journey, and take it at your own pace 🌱',
@@ -417,6 +416,7 @@ window.I18N = (() => {
     'sos.reasonsTitle': 'Your reasons for quitting:',
     'sos.noReasons': 'Add your "reasons for quitting" in Settings and they’ll appear here.',
     'sos.start': 'Start breathing',
+    'sos.repeat': 'Keep breathing again',
     'sos.close': 'Close',
 
     'set.title': 'Settings',
