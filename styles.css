@@ -143,12 +143,13 @@ main { padding: 4px 16px 8px; }
   50% { transform: scale(1.16); }
 }
 .liver-info-btn {
-  display: none; background: none; border: none; padding: 0; margin: 0 0 0 3px;
-  font-size: 1rem; font-family: inherit; line-height: 1; color: inherit; opacity: .85;
+  display: none; background: none; border: none;
+  font-size: inherit; font-family: inherit; line-height: 1; color: inherit; opacity: .7;
   cursor: pointer; vertical-align: middle;
+  padding: 8px; margin: -8px -8px -8px -4px;
 }
 .liver-info-btn:hover, .liver-info-btn:active { opacity: 1; }
-#heroSide.liver-seen .liver-info-btn { display: inline; }
+#heroSide.liver-seen .liver-info-btn { display: inline-block; }
 
 .hero-chips { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
 .chip {
