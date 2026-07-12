@@ -153,6 +153,22 @@ function check(name, cond) {
   const rw = await page.textContent('#rewardSub');
   check('ごほうび残額あと¥5,000', rw.includes('あと ¥5,000'));
 
+  // ── 7b-2. ニックネーム設定 → ホームの挨拶に反映される ──
+  await page.click('#settingsBtn');
+  await page.waitForTimeout(300);
+  check('設定を開いた時点でニックネーム欄は空', (await page.inputValue('#nickname')) === '');
+  await page.fill('#nickname', 'たろう');
+  await page.click('#saveSettings');
+  await page.waitForTimeout(300);
+  check('挨拶にニックネームが反映される', (await page.textContent('#greeting')).includes('たろうさん、'));
+  await page.click('#settingsBtn');
+  await page.waitForTimeout(300);
+  check('設定を再度開くと入力したニックネームが復元される', (await page.inputValue('#nickname')) === 'たろう');
+  await page.fill('#nickname', '');
+  await page.click('#saveSettings');
+  await page.waitForTimeout(300);
+  check('ニックネームを空にすると挨拶が元に戻る', !(await page.textContent('#greeting')).includes('さん、'));
+
   // ── 7c. 戻るボタンでシートが閉じる ──
   await page.click('.nav-item[data-tab="home"]');
   await page.click('#recordTodayBtn');

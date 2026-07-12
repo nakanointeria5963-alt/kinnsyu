@@ -11,6 +11,7 @@ window.I18N = (() => {
     'aria.settings': '設定を開く',
     'aria.close': '閉じる',
 
+    'greet.name': '{name}さん、',
     'greet.morning': 'おはようございます ☀️',
     'greet.day': 'こんにちは 🌤️',
     'greet.evening': 'こんばんは 🌙',
@@ -194,6 +195,8 @@ window.I18N = (() => {
     'set.rewardPricePh': '例: 15000',
     'set.rewardHint': '設定するとホームに「ごほうび貯金」の進み具合が表示されます。',
     'set.you': 'あなた',
+    'set.nickname': 'ニックネーム（任意・ホームの挨拶に使用）',
+    'set.nicknamePh': '例: たろう',
     'set.birth': '生年月日（占い・アドバイスに使用）',
     'set.reasons': '禁酒する理由（1行に1つ・SOS時に表示されます）',
     'set.reasonsPh': '例: 家族との時間を大切にしたい\n例: 朝スッキリ起きたい',
@@ -259,6 +262,7 @@ window.I18N = (() => {
     'aria.settings': 'Open settings',
     'aria.close': 'Close',
 
+    'greet.name': '{name}, ',
     'greet.morning': 'Good morning ☀️',
     'greet.day': 'Good afternoon 🌤️',
     'greet.evening': 'Good evening 🌙',
@@ -442,6 +446,8 @@ window.I18N = (() => {
     'set.rewardPricePh': 'e.g. 150',
     'set.rewardHint': 'A "Reward fund" progress card will appear on Home.',
     'set.you': 'About you',
+    'set.nickname': 'Nickname (optional, used in Home greeting)',
+    'set.nicknamePh': 'e.g. Alex',
     'set.birth': 'Birth date (for tarot & advice)',
     'set.reasons': 'Your reasons for quitting (one per line, shown in SOS)',
     'set.reasonsPh': 'e.g. more time with my family\ne.g. wake up clear-headed',

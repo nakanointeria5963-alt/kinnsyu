@@ -39,6 +39,7 @@ const defaultState = {
   lastBackupAt: '',         // 最後にバックアップを保存した日
   backupNudgedAt: '',       // 最後にバックアップを促した日
   liverNoticeSeen: false,   // 肝臓イラストを一度タップ済みか（済みなら脈打つ演出を止める）
+  nickname: '',             // 設定で入力する任意のニックネーム（ホームの挨拶に使用）
 };
 
 let state = load();
@@ -172,7 +173,9 @@ function renderGreeting() {
   const h = new Date().getHours();
   const g = t(h < 5 ? 'greet.evening' : h < 11 ? 'greet.morning' : h < 18 ? 'greet.day' : 'greet.evening');
   const m = t('greet.m' + (Util.hashSeed(todayStr() + 'greet') % 8));
-  $('#greeting').textContent = `${g} ${m}`;
+  const name = (state.nickname || '').trim();
+  const greetLine = name ? `${t('greet.name', { name })}${g}` : g;
+  $('#greeting').textContent = `${greetLine} ${m}`;
 }
 
 /* --- ヒーロー（リング・肝臓・チップ） --- */
@@ -800,6 +803,7 @@ function openSettings() {
   $('#calPerDrink').value = state.calPerDrink;
   $('#rewardName').value = state.rewardName || '';
   $('#rewardPrice').value = state.rewardPrice || '';
+  $('#nickname').value = state.nickname || '';
   $('#birthDate').value = state.birthDate;
   $('#reasonsInput').value = state.reasons.join('\n');
   $('#reminderOn').checked = state.reminderOn;
@@ -834,6 +838,7 @@ async function saveSettings() {
   state.calPerDrink = Math.max(0, Number($('#calPerDrink').value) || 0);
   state.rewardName = $('#rewardName').value.trim();
   state.rewardPrice = Math.max(0, Math.round(Number($('#rewardPrice').value) || 0));
+  state.nickname = $('#nickname').value.trim().slice(0, 12);
   const newBirth = $('#birthDate').value || '';
   if (newBirth !== state.birthDate) state.advice = null;
   state.birthDate = newBirth;
