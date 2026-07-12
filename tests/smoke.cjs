@@ -40,6 +40,8 @@ function check(name, cond) {
   await page.waitForTimeout(800); // count-up 完了待ち
   check('継続10日', (await page.textContent('#daysCount')) === '10');
   check('通算10日', (await page.textContent('#chipTotal b')) === '10');
+  check('通算は開始日からの経過日数を分母にした分数表示', /10\s*\/\s*10日/.test(await page.textContent('#chipTotal')));
+  check('最長10日(まだ一度も脱線していないので連続日数と同じ)', (await page.textContent('#chipBest b')) === '10');
   check('節約¥15,000', (await page.textContent('#moneySaved')) === '¥15,000');
   check('禁酒率100%', (await page.textContent('#soberRate')) === '100%');
   check('あいさつ表示', ((await page.textContent('#greeting')) || '').length > 3);
@@ -522,6 +524,38 @@ function check(name, cond) {
   check('sticky指定のトーストは6.5秒待っても消えない', !(await page.$eval('#toast', el => el.classList.contains('hidden'))));
   await page.click('#toast button');
   check('sticky指定のトーストもボタン操作で閉じる', await page.$eval('#toast', el => el.classList.contains('hidden')));
+
+  // ── 15c. 通算チップ: 開始当日(経過0日)は分数表示にならない ──
+  await page.evaluate(() => {
+    localStorage.setItem('kinshu_v1', JSON.stringify({
+      startDate: new Date().toISOString().slice(0, 10),
+      drinksPerDay: 3, pricePerDrink: 500, calPerDrink: 150,
+      relapses: [], logs: {}, goalDays: 30, reminderOn: false, reminderTime: '21:00', onboarded: true,
+    }));
+  });
+  await page.reload(); await page.waitForTimeout(600);
+  check('開始当日は通算が分数表示にならない(0/0を避ける)', !/\//.test(await page.textContent('#chipTotal')));
+  check('開始当日は通算0日と表示', (await page.textContent('#chipTotal b')) === '0');
+
+  // ── 15d. 最長記録: 過去に遡って脱線日を追加すると再計算される(旧: 一度上がったら固定されるバグ) ──
+  const d = n => new Date(Date.now() - n * 86400000).toISOString().slice(0, 10);
+  await page.evaluate((start) => {
+    localStorage.setItem('kinshu_v1', JSON.stringify({
+      startDate: start,
+      drinksPerDay: 3, pricePerDrink: 500, calPerDrink: 150,
+      relapses: [], logs: {}, goalDays: 30, reminderOn: false, reminderTime: '21:00', onboarded: true,
+    }));
+  }, d(20));
+  await page.reload(); await page.waitForTimeout(600);
+  check('脱線なし: 最長20日', (await page.textContent('#chipBest b')) === '20');
+  await page.evaluate((mid) => {
+    const s = JSON.parse(localStorage.getItem('kinshu_v1'));
+    s.relapses = [mid];
+    localStorage.setItem('kinshu_v1', JSON.stringify(s));
+  }, d(10));
+  await page.reload(); await page.waitForTimeout(600);
+  check('過去に脱線日を追加すると最長記録が正しく再計算される(以前は20日のまま固定されるバグがあった)', (await page.textContent('#chipBest b')) === '10');
+  check('連続日数もその脱線日の翌日から数え直される', (await page.textContent('#chipStreak b')) === '9');
 
   // ── 16. 端末salt・テーマ先読み・マニフェスト ──
   check('deviceSaltが生成・保存される', (await page.evaluate(() => (JSON.parse(localStorage.getItem('kinshu_v1')).deviceSalt || '').length)) >= 8);

@@ -26,7 +26,6 @@ const defaultState = {
   relapses: [],             // 飲んでしまった日 (YYYY-MM-DD)
   relapseNotes: {},         // { date: きっかけメモ }
   logs: {},                 // { date: { mood, craving, note, triggers[] } }
-  bestStreak: 0,
   badgeDates: {},           // { 日数: 達成日 }
   reasons: [],              // 禁酒する理由
   rewardName: '',           // ごほうび貯金の目当て
@@ -115,6 +114,21 @@ function relapseCount() {
 function totalSoberDays() { return Math.max(0, elapsedDays() - relapseCount()); }
 function isRelapseDay(ds) { return state.relapses.includes(ds); }
 
+/* 過去に遡って「飲んでしまった日」を追加/削除しても正しく再計算されるよう、
+   保存済みの値を書き換えるのではなく、開始日〜今日を relapses で区切った
+   各連続区間の長さから毎回計算し直す。 */
+function bestStreakDays() {
+  const today = todayStr();
+  const relapses = [...new Set(state.relapses)].filter(d => d >= state.startDate && d <= today).sort();
+  let segStart = state.startDate;
+  let best = 0;
+  for (const r of relapses) {
+    best = Math.max(best, diffDays(r, segStart));
+    segStart = addDays(r, 1);
+  }
+  return Math.max(best, diffDays(today, segStart));
+}
+
 const BADGES = [
   { days: 1,   emoji: '🌱' }, { days: 3,   emoji: '🍃' }, { days: 7,   emoji: '⭐' },
   { days: 14,  emoji: '💪' }, { days: 30,  emoji: '🏅' }, { days: 60,  emoji: '🎖️' },
@@ -136,7 +150,6 @@ function fmtMoney(n) {
 function updateDerived() {
   let changed = false;
   const days = currentDays();
-  if (days > state.bestStreak) { state.bestStreak = days; changed = true; }
 
   const newly = [];
   const start = streakStart();
@@ -188,8 +201,11 @@ function renderHero() {
   animateNumber($('#daysCount'), days);
   $('.ring-days i').textContent = t(days === 1 ? 'ring.dayUnit1' : 'ring.dayUnit');
   $('#chipStreak').innerHTML = t('chip.streak', { n: days });
-  $('#chipTotal').innerHTML = t('chip.total', { n: totalSoberDays() });
-  $('#chipBest').innerHTML = t('chip.best', { n: state.bestStreak });
+  const elapsed = elapsedDays();
+  $('#chipTotal').innerHTML = elapsed > 0
+    ? t('chip.totalFrac', { sober: totalSoberDays(), elapsed })
+    : t('chip.total', { n: totalSoberDays() });
+  $('#chipBest').innerHTML = t('chip.best', { n: bestStreakDays() });
   $('#counterSub').textContent = t('hero.since', { d1: fmtDate(streakStart()), d2: fmtDate(state.startDate) });
 
   const next = BADGES.find(b => b.days > days);
