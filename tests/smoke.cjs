@@ -133,6 +133,28 @@ function check(name, cond) {
   const dd = await page.textContent('#dayDetail');
   check('日別詳細に記録内容', dd.includes('渇望 6/10') && dd.includes('テストメモ'));
 
+  // ── 6b. カレンダーの週の始まり設定(日曜⇔月曜) ──
+  check('デフォルトは日曜始まり', (await page.textContent('#calendar .cal-cell.dow')) === '日');
+  await page.click('#settingsBtn');
+  await page.waitForTimeout(300);
+  check('設定の初期状態は日曜始まりが選択', await page.$eval('#weekStartSeg .seg-btn[data-week="sun"]', el => el.classList.contains('active')));
+  await page.click('#weekStartSeg .seg-btn[data-week="mon"]');
+  await page.waitForTimeout(200);
+  await page.click('#closeSettings');
+  await page.waitForTimeout(200);
+  check('月曜始まりに切り替えるとカレンダー先頭が月曜になる', (await page.textContent('#calendar .cal-cell.dow')) === '月');
+  await page.reload(); await page.waitForTimeout(600);
+  await page.click('.nav-item[data-tab="stats"]');
+  await page.waitForTimeout(300);
+  check('リロード後も月曜始まりの設定を保持', (await page.textContent('#calendar .cal-cell.dow')) === '月');
+  await page.click('#settingsBtn');
+  await page.waitForTimeout(300);
+  await page.click('#weekStartSeg .seg-btn[data-week="sun"]');
+  await page.waitForTimeout(200);
+  await page.click('#closeSettings');
+  await page.waitForTimeout(200);
+  check('日曜始まりに戻せる', (await page.textContent('#calendar .cal-cell.dow')) === '日');
+
   // ── 7. 設定・テーマ・エクスポート ──
   await page.click('#settingsBtn');
   await page.waitForTimeout(300);

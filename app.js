@@ -40,6 +40,7 @@ const defaultState = {
   backupNudgedAt: '',       // 最後にバックアップを促した日
   liverNoticeSeen: false,   // 肝臓イラストを一度タップ済みか（済みなら脈打つ演出を止める）
   nickname: '',             // 設定で入力する任意のニックネーム（ホームの挨拶に使用）
+  weekStart: 'sun',         // カレンダーの週の始まり ('sun' | 'mon')
 };
 
 let state = load();
@@ -478,11 +479,13 @@ function renderCalendar() {
   $('#calTitle').textContent = I18N.lang() === 'ja'
     ? `${y}年 ${m + 1}月`
     : new Date(y, m, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  const startDow = new Date(y, m, 1).getDay();
+  const weekStartOffset = state.weekStart === 'mon' ? 1 : 0;
+  const startDow = (new Date(y, m, 1).getDay() - weekStartOffset + 7) % 7;
   const daysInMonth = new Date(y, m + 1, 0).getDate();
   const today = todayStr();
 
-  const dows = I18N.dows();
+  const dowsBase = I18N.dows();
+  const dows = weekStartOffset ? dowsBase.slice(weekStartOffset).concat(dowsBase.slice(0, weekStartOffset)) : dowsBase;
   let html = dows.map(d => `<div class="cal-cell dow">${d}</div>`).join('');
   for (let i = 0; i < startDow; i++) html += `<div class="cal-cell"></div>`;
   for (let d = 1; d <= daysInMonth; d++) {
@@ -813,6 +816,7 @@ function openSettings() {
   $('#currencyWarn').hidden = true;
   $$('#themeSeg .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === state.theme));
   $$('#langSeg .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === (state.lang || 'auto')));
+  $$('#weekStartSeg .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.week === state.weekStart));
   updateReminderUI();
   openSheet('#settingsSheet');
 }
@@ -1257,6 +1261,11 @@ function init() {
     state.lang = b.dataset.lang;
     $$('#langSeg .seg-btn').forEach(x => x.classList.toggle('active', x === b));
     save(); applyLang(); updateReminderUI(); render();
+  }));
+  $$('#weekStartSeg .seg-btn').forEach(b => b.addEventListener('click', () => {
+    state.weekStart = b.dataset.week;
+    $$('#weekStartSeg .seg-btn').forEach(x => x.classList.toggle('active', x === b));
+    save(); renderCalendar();
   }));
   $('#exportBtn').addEventListener('click', exportData);
   $('#importFile').addEventListener('change', e => { if (e.target.files[0]) importData(e.target.files[0]); e.target.value = ''; });
