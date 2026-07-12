@@ -166,6 +166,14 @@ function check(name, cond) {
   await page.click('.nav-item[data-tab="badges"]');
   check('シェアボタンあり', !!(await page.$('#shareBtn')));
 
+  // ── 7d-2. 禁酒継続の円タップで達成タブのマイルストーンへジャンプ ──
+  await page.click('.nav-item[data-tab="home"]');
+  await page.waitForTimeout(200);
+  await page.click('#ringWrap');
+  await page.waitForTimeout(200);
+  check('円タップで達成タブに切り替わる', await page.$eval('#badges', el => el.classList.contains('active')));
+  check('円タップ後、達成タブのマイルストーンが見える', await page.$eval('#badgeGrid', el => el.children.length > 0));
+
   // ── 7e. 記録リストに修正ボタン ──
   await page.click('.nav-item[data-tab="log"]');
   await page.waitForTimeout(200);

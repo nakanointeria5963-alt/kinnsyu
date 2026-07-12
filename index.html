@@ -37,7 +37,7 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
       <p class="greeting" id="greeting"></p>
       <div class="card hero">
         <div class="hero-top">
-          <div class="ring-wrap" aria-label="継続日数">
+          <div class="ring-wrap" id="ringWrap" role="button" tabindex="0" aria-label="継続日数（タップでマイルストーンへ）">
             <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
               <defs>
                 <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">

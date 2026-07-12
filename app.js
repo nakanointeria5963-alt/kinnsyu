@@ -1137,6 +1137,12 @@ function init() {
   /* ナビ */
   $$('.nav-item').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
 
+  /* 禁酒継続の円タップ → 達成タブのマイルストーンへジャンプ */
+  $('#ringWrap').addEventListener('click', () => switchTab('badges'));
+  $('#ringWrap').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); switchTab('badges'); }
+  });
+
   /* シェア */
   $('#shareBtn').addEventListener('click', shareProgress);
 
