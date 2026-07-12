@@ -180,6 +180,22 @@ function check(name, cond) {
   check('✕ボタンで確認カードが閉じる', await page.$eval('#relapseConfirm', el => el.classList.contains('hidden')));
   check('✕ボタンはundoしない: 連続0日のまま', (await page.textContent('#chipStreak b')) === '0');
 
+  // ── 7h. 肝臓イラストの注意書きボタン(初回は大きく→タップで縮小・永続化、ポップアップに医学的でない注意書き) ──
+  check('肝臓: 見出しが断定的な医学表現を避けている', !(await page.textContent('#liverCaption')).includes('健康な肝臓'));
+  check('肝臓: 注意書きボタンは初回は非compact', !(await page.$eval('#liverInfoBtn', el => el.classList.contains('compact'))));
+  await page.click('#liverInfoBtn');
+  await page.waitForTimeout(300);
+  check('肝臓: ボタンタップでポップアップが開く', !(await page.$eval('#liverInfoSheet', el => el.classList.contains('hidden'))));
+  const liverBody = await page.textContent('.liver-info-body');
+  check('肝臓: 注意書きに「医学的な診断ではない」旨を明記', liverBody.includes('医学的な診断'));
+  check('肝臓: 注意書きに受診の案内を明記', liverBody.includes('医療機関'));
+  await page.click('#closeLiverInfo');
+  await page.waitForTimeout(300);
+  check('肝臓: 閉じるボタンでポップアップが閉じる', await page.$eval('#liverInfoSheet', el => el.classList.contains('hidden')));
+  check('肝臓: 一度タップ後はボタンがcompactになる', await page.$eval('#liverInfoBtn', el => el.classList.contains('compact')));
+  await page.reload(); await page.waitForTimeout(600);
+  check('肝臓: compact状態は再読み込み後も保持される', await page.$eval('#liverInfoBtn', el => el.classList.contains('compact')));
+
   // ── 8. 既存ユーザーの移行（旧形式localStorage） ──
   await page.evaluate(() => {
     localStorage.setItem('kinshu_v1', JSON.stringify({
