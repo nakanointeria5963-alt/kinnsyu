@@ -38,6 +38,7 @@ const defaultState = {
   deviceSalt: '',           // 生年月日未入力でも占いが人によって変わるための端末固有値
   lastBackupAt: '',         // 最後にバックアップを保存した日
   backupNudgedAt: '',       // 最後にバックアップを促した日
+  liverNoticeSeen: false,   // 肝臓イラストの注意書きアイコンを一度タップ済みか（済みなら控えめな大きさに）
 };
 
 let state = load();
@@ -198,6 +199,7 @@ function renderHero() {
     : t('hero.allBadges');
 
   renderLiver(days);
+  renderLiverInfoBtn();
 }
 
 function animateNumber(el, target) {
@@ -228,6 +230,10 @@ function renderLiver(days) {
   if (body) body.setAttribute('fill', liverColor(d));
   const remain = Math.max(0, LIVER_TARGET_DAYS - d);
   $('#liverCaption').innerHTML = remain > 0 ? t('liver.remain', { n: remain }) : t('liver.done');
+}
+function renderLiverInfoBtn() {
+  const btn = $('#liverInfoBtn');
+  if (btn) btn.classList.toggle('seen', !!state.liverNoticeSeen);
 }
 
 /* --- 直近7日ストリップ（タップでその日の記録へ） --- */
@@ -1202,7 +1208,10 @@ function init() {
   $('#closeRelapse').addEventListener('click', () => closeSheet('#relapseSheet'));
 
   /* 肝臓イラストの注意書き */
-  $('#liverInfoBtn').addEventListener('click', () => openSheet('#liverInfoSheet'));
+  $('#liverInfoBtn').addEventListener('click', () => {
+    if (!state.liverNoticeSeen) { state.liverNoticeSeen = true; save(); renderLiverInfoBtn(); }
+    openSheet('#liverInfoSheet');
+  });
   $('#closeLiverInfo').addEventListener('click', () => closeSheet('#liverInfoSheet'));
 
   /* SOS */
