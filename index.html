@@ -359,7 +359,7 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
     <p class="hint" data-i18n="set.rewardHint">設定するとホームに「ごほうび貯金」の進み具合が表示されます。</p>
 
     <p class="sec-title" data-i18n="set.you">あなた</p>
-    <label class="field"><span data-i18n="set.nickname">ニックネーム（任意・ホームの挨拶に使用）</span><input type="text" id="nickname" data-i18n-ph="set.nicknamePh" placeholder="例: たろう" maxlength="12" /></label>
+    <label class="field"><span data-i18n="set.nickname">ニックネーム（任意・ホームの挨拶に使用）</span><input type="text" id="nickname" data-i18n-ph="set.nicknamePh" placeholder="例: たろう" maxlength="12" autocomplete="off" /></label>
     <label class="field"><span data-i18n="set.birth">生年月日（占い・アドバイスに使用）</span><input type="date" id="birthDate" /></label>
     <label class="field"><span data-i18n="set.reasons">禁酒する理由（1行に1つ・SOS時に表示されます）</span><textarea id="reasonsInput" data-i18n-ph="set.reasonsPh" placeholder="例: 家族との時間を大切にしたい&#10;例: 朝スッキリ起きたい"></textarea></label>
 
