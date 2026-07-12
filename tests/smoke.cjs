@@ -494,6 +494,13 @@ function check(name, cond) {
   check('促しから保存できる', (nudgeDl.suggestedFilename() || '').startsWith('kinshu-backup-'));
   check('保存日を記録（次の促しは30日後）', (await page.evaluate(() => JSON.parse(localStorage.getItem('kinshu_v1')).lastBackupAt)).length === 10);
 
+  // ── 15b. sticky指定のトースト(アプリ更新通知など)は自動で消えない ──
+  await page.evaluate(() => window.toast('スティッキーテスト', { label: 'ボタン', fn: () => {} }, { sticky: true }));
+  await page.waitForTimeout(6500);
+  check('sticky指定のトーストは6.5秒待っても消えない', !(await page.$eval('#toast', el => el.classList.contains('hidden'))));
+  await page.click('#toast button');
+  check('sticky指定のトーストもボタン操作で閉じる', await page.$eval('#toast', el => el.classList.contains('hidden')));
+
   // ── 16. 端末salt・テーマ先読み・マニフェスト ──
   check('deviceSaltが生成・保存される', (await page.evaluate(() => (JSON.parse(localStorage.getItem('kinshu_v1')).deviceSalt || '').length)) >= 8);
   check('生年月日なしでも端末ごとに占いが変わる', await page.evaluate(() => {

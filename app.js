@@ -1120,7 +1120,7 @@ async function shareProgress() {
 }
 
 let toastTimer;
-function toast(msg, action) {
+function toast(msg, action, opts) {
   const el = $('#toast');
   el.innerHTML = escapeHtml(msg);
   if (action) {
@@ -1131,7 +1131,9 @@ function toast(msg, action) {
   }
   el.classList.remove('hidden');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.add('hidden'), action ? 6000 : 2600);
+  if (!(opts && opts.sticky)) {
+    toastTimer = setTimeout(() => el.classList.add('hidden'), action ? 6000 : 2600);
+  }
 }
 
 /* ═══════════════ 起動 ═══════════════ */
@@ -1302,7 +1304,7 @@ function init() {
         if (!nw) return;
         nw.addEventListener('statechange', () => {
           if (nw.state === 'installed' && navigator.serviceWorker.controller) {
-            toast(t('sw.update'), { label: t('sw.reload'), fn: () => location.reload() });
+            toast(t('sw.update'), { label: t('sw.reload'), fn: () => location.reload() }, { sticky: true });
           }
         });
       });
