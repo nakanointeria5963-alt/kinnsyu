@@ -101,12 +101,12 @@ const LUCKY_COLORS = [
   { hex: '#2563eb', ja: 'サファイア', en: 'Sapphire' },
   { hex: '#059669', ja: 'エメラルド', en: 'Emerald' },
   { hex: '#d97706', ja: 'ゴールド', en: 'Gold' },
-  { hex: '#7c3aed', ja: 'ラベンダー', en: 'Lavender' },
+  { hex: '#a78bfa', ja: 'ラベンダー', en: 'Lavender' },
   { hex: '#0891b2', ja: 'ターコイズ', en: 'Turquoise' },
-  { hex: '#f43f5e', ja: 'コーラル', en: 'Coral' },
-  { hex: '#64748b', ja: 'シルバー', en: 'Silver' },
+  { hex: '#ff7f50', ja: 'コーラル', en: 'Coral' },
+  { hex: '#9ca3af', ja: 'シルバー', en: 'Silver' },
   { hex: '#ea580c', ja: 'オレンジ', en: 'Orange' },
-  { hex: '#10b981', ja: 'ミント', en: 'Mint' },
+  { hex: '#2dd4bf', ja: 'ミント', en: 'Mint' },
 ];
 
 const LUCKY_ITEMS = {
