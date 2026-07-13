@@ -559,6 +559,18 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dark"]) .hint-warn { color: #fcd34d; }
 }
+.migrate-details {
+  margin: -6px 0 14px; border: 1px solid var(--border); border-radius: 12px;
+  padding: 10px 14px; background: var(--bg-alt, transparent);
+}
+.migrate-details summary {
+  font-size: .85rem; font-weight: 700; cursor: pointer; list-style: none;
+}
+.migrate-details summary::-webkit-details-marker { display: none; }
+.migrate-details summary::after { content: '▾'; float: right; color: var(--muted); transition: transform .15s; }
+.migrate-details[open] summary::after { transform: rotate(180deg); }
+.migrate-steps { margin: 10px 0 2px; padding-left: 20px; font-size: .8rem; color: var(--muted); line-height: 1.6; }
+.migrate-steps li { margin-bottom: 6px; }
 /* 通貨変更時に金額欄へ注目を促すパルス */
 .pulse-attn { animation: pulseAttn 1.4s ease-in-out; }
 @keyframes pulseAttn {
@@ -597,6 +609,28 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
   cursor: pointer; font-size: .9rem; padding: 2px 4px; flex: none;
 }
 @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* ═══════════════ バックアップ誘導カード ═══════════════ */
+/* ボタン操作で閉じるまで消えないため、SOSボタンの帯とは重ねず、その上に置く */
+.backup-nudge {
+  position: fixed; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 84px);
+  left: 50%; transform: translateX(-50%);
+  width: min(92vw, 420px);
+  background: var(--card); color: var(--text); border-radius: var(--radius);
+  padding: 16px 18px; box-shadow: 0 12px 32px rgba(0, 0, 0, .18), var(--shadow);
+  z-index: 200; animation: toastIn .3s;
+}
+.backup-nudge.hidden { display: none; }
+.backup-nudge-x {
+  position: absolute; top: 8px; right: 8px; background: none; border: none;
+  color: var(--muted); font-size: 1rem; cursor: pointer; padding: 6px; line-height: 1;
+}
+.backup-nudge-row { display: flex; align-items: flex-start; gap: 10px; padding-right: 22px; }
+.backup-nudge-icon { font-size: 1.3rem; flex: none; }
+.backup-nudge-msg { font-size: .88rem; line-height: 1.5; margin: 0; }
+.backup-nudge-actions { display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap; margin-top: 12px; }
+.backup-nudge-actions .btn-sm { padding: 9px 16px; font-size: .85rem; border-radius: 11px; }
+.backup-nudge-quiet { margin: 0; padding: 6px 2px; }
 
 /* ═══════════════ スリップ記録の確認（中央ポップ） ═══════════════ */
 .rc-overlay {

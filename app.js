@@ -37,6 +37,7 @@ const defaultState = {
   deviceSalt: '',           // 生年月日未入力でも占いが人によって変わるための端末固有値
   lastBackupAt: '',         // 最後にバックアップを保存した日
   backupNudgedAt: '',       // 最後にバックアップを促した日
+  backupNudgeMuted: false,  // バックアップの誘導カードを「もう表示しない」にしたか
   liverNoticeSeen: false,   // 肝臓イラストを一度タップ済みか（済みなら脈打つ演出を止める）
   nickname: '',             // 設定で入力する任意のニックネーム（ホームの挨拶に使用）
   weekStart: 'sun',         // カレンダーの週の始まり ('sun' | 'mon')
@@ -936,14 +937,21 @@ async function exportData() {
 
 /* 記録が溜まってきたら、月1回だけバックアップをそっと促す */
 function maybeNudgeBackup() {
-  if (!state.onboarded) return;
+  if (!state.onboarded || state.backupNudgeMuted) return;
   if (Object.keys(state.logs).length < 3 && elapsedDays() < 7) return;
   const today = todayStr();
   if (state.lastBackupAt && diffDays(today, state.lastBackupAt) < 30) return;
   if (state.backupNudgedAt && diffDays(today, state.backupNudgedAt) < 7) return;
   state.backupNudgedAt = today;
   save();
-  setTimeout(() => toast(t('backup.nudge'), { label: t('backup.nudgeBtn'), fn: exportData }), 3000);
+  setTimeout(showBackupNudge, 3000);
+}
+
+function showBackupNudge() {
+  $('#backupNudge').classList.remove('hidden');
+}
+function hideBackupNudge() {
+  $('#backupNudge').classList.add('hidden');
 }
 
 function importData(file) {
@@ -1285,6 +1293,14 @@ function init() {
   }));
   $('#exportBtn').addEventListener('click', exportData);
   $('#importFile').addEventListener('change', e => { if (e.target.files[0]) importData(e.target.files[0]); e.target.value = ''; });
+  $('#backupNudgeSave').addEventListener('click', async () => { await exportData(); hideBackupNudge(); });
+  $('#backupNudgeLater').addEventListener('click', hideBackupNudge);
+  $('#backupNudgeClose').addEventListener('click', hideBackupNudge);
+  $('#backupNudgeMute').addEventListener('click', () => {
+    state.backupNudgeMuted = true;
+    save();
+    hideBackupNudge();
+  });
   $('#resetAll').addEventListener('click', () => {
     if (confirm(t('set.confirmReset'))) {
       localStorage.removeItem(STORE_KEY);

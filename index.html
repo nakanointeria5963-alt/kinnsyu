@@ -380,6 +380,14 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
       <label class="btn file-btn"><span data-i18n="set.import">📥 バックアップを読み込み</span><input type="file" id="importFile" accept=".json,application/json" hidden /></label>
     </div>
     <p class="hint" data-i18n="set.dataHint">記録はこの端末のブラウザ内にのみ保存されます。機種変更やブラウザのデータ削除に備えて、ときどきバックアップを保存してください。</p>
+    <details class="migrate-details">
+      <summary data-i18n="set.migrateTitle">🔄 機種変更するときは</summary>
+      <ol class="migrate-steps">
+        <li data-i18n="set.migrateStep1">古いスマホで「📤バックアップを保存・共有」を押し、Googleドライブ・LINE・メールなど、新しいスマホでも開ける場所に送っておく</li>
+        <li data-i18n="set.migrateStep2">新しいスマホでそのファイルを保存する</li>
+        <li data-i18n="set.migrateStep3">新しいスマホでこのアプリを開き、設定の「📥バックアップを読み込み」でそのファイルを選ぶ</li>
+      </ol>
+    </details>
 
     <div class="sheet-actions sticky-actions">
       <button id="saveSettings" class="btn btn-primary" data-i18n="set.save">保存</button>
@@ -493,6 +501,19 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
 </div>
 
 <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+<div id="backupNudge" class="backup-nudge hidden" role="status" aria-live="polite">
+  <button id="backupNudgeClose" class="backup-nudge-x" data-i18n-aria="aria.close" aria-label="閉じる">✕</button>
+  <div class="backup-nudge-row">
+    <span class="backup-nudge-icon" aria-hidden="true">💾</span>
+    <p class="backup-nudge-msg" data-i18n="backup.nudge">記録が増えてきました。機種変更や故障に備えて、バックアップを保存しておきましょう</p>
+  </div>
+  <div class="backup-nudge-actions">
+    <button id="backupNudgeSave" class="btn btn-primary btn-sm" data-i18n="backup.nudgeBtn">今すぐ保存</button>
+    <button id="backupNudgeLater" class="btn-quiet backup-nudge-quiet" data-i18n="backup.nudgeLater">後で</button>
+    <button id="backupNudgeMute" class="btn-quiet backup-nudge-quiet" data-i18n="backup.nudgeMute">もう表示しない</button>
+  </div>
+</div>
 
 <script src="i18n.js"></script>
 <script src="util.js"></script>

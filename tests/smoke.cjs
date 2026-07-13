@@ -501,22 +501,55 @@ function check(name, cond) {
   await page.waitForTimeout(600);
   check('読み込みOK→データが置き換わる', (await page.evaluate(() => JSON.parse(localStorage.getItem('kinshu_v1')).startDate)) === fixDate);
 
-  // ── 15. バックアップ促し（30日以上未保存なら月1回のトースト） ──
+  // ── 15. バックアップ促し（30日以上未保存なら月1回、専用カードで表示） ──
   await page.evaluate(() => {
     const s = JSON.parse(localStorage.getItem('kinshu_v1'));
-    s.lastBackupAt = ''; s.backupNudgedAt = '';
+    s.lastBackupAt = ''; s.backupNudgedAt = ''; s.backupNudgeMuted = false;
     localStorage.setItem('kinshu_v1', JSON.stringify(s));
   });
   await page.reload();
   await page.waitForTimeout(3800);   // 促しは起動3秒後に出る
-  const nudgeText = await page.textContent('#toast');
-  check('バックアップ促しトースト表示', nudgeText.includes('バックアップ'));
+  check('バックアップ促しカード表示', !(await page.$eval('#backupNudge', el => el.classList.contains('hidden'))));
+  const nudgeMsg = await page.textContent('#backupNudge .backup-nudge-msg');
+  check('バックアップ促しカードの文言', nudgeMsg.includes('バックアップ'));
   const [nudgeDl] = await Promise.all([
     page.waitForEvent('download', { timeout: 5000 }),
-    page.click('#toast button'),
+    page.click('#backupNudgeSave'),
   ]);
   check('促しから保存できる', (nudgeDl.suggestedFilename() || '').startsWith('kinshu-backup-'));
+  check('保存後カードが閉じる', await page.$eval('#backupNudge', el => el.classList.contains('hidden')));
   check('保存日を記録（次の促しは30日後）', (await page.evaluate(() => JSON.parse(localStorage.getItem('kinshu_v1')).lastBackupAt)).length === 10);
+
+  // ── 15a2. 「もう表示しない」を押すと二度と出ない ──
+  await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('kinshu_v1'));
+    s.lastBackupAt = ''; s.backupNudgedAt = ''; s.backupNudgeMuted = false;
+    localStorage.setItem('kinshu_v1', JSON.stringify(s));
+  });
+  await page.reload();
+  await page.waitForTimeout(3800);
+  await page.click('#backupNudgeMute');
+  check('「もう表示しない」でカードが閉じる', await page.$eval('#backupNudge', el => el.classList.contains('hidden')));
+  check('mute状態が保存される', await page.evaluate(() => JSON.parse(localStorage.getItem('kinshu_v1')).backupNudgeMuted) === true);
+  await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('kinshu_v1'));
+    s.backupNudgedAt = '';   // 抑制期間もリセットして、mute自体が効いているか検証
+    localStorage.setItem('kinshu_v1', JSON.stringify(s));
+  });
+  await page.reload();
+  await page.waitForTimeout(3800);
+  check('mute後は再読み込みしても促しカードが出ない', await page.$eval('#backupNudge', el => el.classList.contains('hidden')));
+
+  // ── 15a3. 設定画面に機種変更の手順（折りたたみ）がある ──
+  await page.click('#settingsBtn');
+  await page.waitForTimeout(200);
+  check('設定に「機種変更するときは」の項目がある', await page.$eval('.migrate-details summary', el => el.textContent.includes('機種変更')));
+  check('初期状態は閉じている', !(await page.$eval('.migrate-details', el => el.hasAttribute('open'))));
+  await page.click('.migrate-details summary');
+  check('タップで開いて手順が読める', await page.$eval('.migrate-details', el => el.hasAttribute('open')) &&
+    (await page.textContent('.migrate-steps')).includes('バックアップを読み込み'));
+  await page.click('#closeSettings');
+  await page.waitForTimeout(200);
 
   // ── 15b. sticky指定のトースト(アプリ更新通知など)は自動で消えない ──
   await page.evaluate(() => window.toast('スティッキーテスト', { label: 'ボタン', fn: () => {} }, { sticky: true }));
