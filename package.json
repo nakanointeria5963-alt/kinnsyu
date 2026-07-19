@@ -1,0 +1,19 @@
+{
+  "name": "kinnsyu",
+  "version": "1.0.0",
+  "private": true,
+  "description": "禁酒の継続をサポートするモバイルファーストのWebアプリ（PWA）です。サーバー不要で、データはすべて端末のブラウザ（localStorage）に保存されます。",
+  "scripts": {
+    "test": "node tests/smoke.cjs",
+    "stamp-sw": "node tools/stamp-sw.cjs",
+    "stamp-sw:check": "node tools/stamp-sw.cjs --check"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nakanointeria5963-alt/kinnsyu.git"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "playwright": "^1.48.0"
+  }
+}

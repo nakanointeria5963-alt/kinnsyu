@@ -1,9 +1,14 @@
-/* ═══════════════ デザイントークン ═══════════════ */
+/* ═══════════════ デザイントークン ═══════════════
+   色はライト値をそのまま持ち、ダーク値は "-dark" 接尾辞の変数として
+   :root に一度だけ定義する。実際にダークを有効化する2つの入口
+   （手動設定 [data-theme="dark"] と OS設定 prefers-color-scheme）は
+   どちらもその値を var() で参照するだけにして、色の実体が複数箇所に
+   コピーされないようにしている（直し忘れによる色ズレを防ぐため）。 */
 :root {
   --bg: #f2f6f6;
   --card: #ffffff;
   --text: #10221f;
-  --muted: #5f7370;
+  --muted: #4f6360;
   --primary: #0d9488;
   --primary-dark: #0f766e;
   --primary-deep: #115e59;
@@ -15,35 +20,69 @@
   --nav-h: 62px;
   --toast-bg: #10221f;
   --toast-fg: #f2f6f6;
+  --hint-warn: #b45309;
+
+  /* 余白スケール（この単位の倍数だけを使うことで、画面全体の余白のリズムを揃える） */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 32px;
+
+  /* 角丸スケール（小さい部品ほど小さい角丸、大きい面ほど大きい角丸） */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-pill: 99px;
+
+  /* ダーク値（実体はここだけ。参照は下の2箇所から） */
+  --bg-dark: #0c1222;
+  --card-dark: #131b30;
+  --text-dark: #e4eae9;
+  --muted-dark: #8fa3a0;
+  --primary-a-dark: #2dd4bf;
+  --primary-dark-a-dark: #14b8a6;
+  --primary-deep-dark: #0f766e;
+  --danger-dark: #fb7185;
+  --border-dark: #22304d;
+  --shadow-dark: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .35);
+  --toast-bg-dark: #e4eae9;
+  --toast-fg-dark: #0c1222;
+  --hint-warn-dark: #fcd34d;
 }
 :root[data-theme="dark"] {
-  --bg: #0c1222;
-  --card: #131b30;
-  --text: #e4eae9;
-  --muted: #8fa3a0;
-  --primary: #2dd4bf;
-  --primary-dark: #14b8a6;
-  --primary-deep: #0f766e;
-  --danger: #fb7185;
-  --border: #22304d;
-  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .35);
-  --toast-bg: #e4eae9;
-  --toast-fg: #0c1222;
+  --bg: var(--bg-dark);
+  --card: var(--card-dark);
+  --text: var(--text-dark);
+  --muted: var(--muted-dark);
+  --primary: var(--primary-a-dark);
+  --primary-dark: var(--primary-dark-a-dark);
+  --primary-deep: var(--primary-deep-dark);
+  --danger: var(--danger-dark);
+  --border: var(--border-dark);
+  --shadow: var(--shadow-dark);
+  --toast-bg: var(--toast-bg-dark);
+  --toast-fg: var(--toast-fg-dark);
+  --hint-warn: var(--hint-warn-dark);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dark"]) {
-    --bg: #0c1222;
-    --card: #131b30;
-    --text: #e4eae9;
-    --muted: #8fa3a0;
-    --primary: #2dd4bf;
-    --primary-dark: #14b8a6;
-    --primary-deep: #0f766e;
-    --danger: #fb7185;
-    --border: #22304d;
-    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .35);
-    --toast-bg: #e4eae9;
-    --toast-fg: #0c1222;
+    --bg: var(--bg-dark);
+    --card: var(--card-dark);
+    --text: var(--text-dark);
+    --muted: var(--muted-dark);
+    --primary: var(--primary-a-dark);
+    --primary-dark: var(--primary-dark-a-dark);
+    --primary-deep: var(--primary-deep-dark);
+    --danger: var(--danger-dark);
+    --border: var(--border-dark);
+    --shadow: var(--shadow-dark);
+    --toast-bg: var(--toast-bg-dark);
+    --toast-fg: var(--toast-fg-dark);
+    --hint-warn: var(--hint-warn-dark);
   }
 }
 
@@ -74,7 +113,7 @@ button { font-family: inherit; color: inherit; }
 .app-header h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: .01em; }
 .icon-btn {
   background: none; border: none; cursor: pointer; font-size: 1.25rem;
-  padding: 8px; border-radius: 12px; line-height: 1; min-width: 42px; min-height: 42px;
+  padding: var(--sp-2); border-radius: var(--radius-md); line-height: 1; min-width: 42px; min-height: 42px;
 }
 .icon-btn:hover { background: var(--border); }
 
@@ -153,7 +192,7 @@ main { padding: 4px 16px 8px; }
 
 .hero-chips { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
 .chip {
-  background: rgba(255, 255, 255, .14); border-radius: 99px; padding: 5px 13px;
+  background: rgba(255, 255, 255, .14); border-radius: var(--radius-pill); padding: 5px 13px;
   font-size: .78rem;
 }
 .chip b { font-size: .95rem; font-weight: 800; }
@@ -176,14 +215,14 @@ main { padding: 4px 16px 8px; }
 
 /* ═══════════════ ボタン ═══════════════ */
 .btn {
-  padding: 13px 16px; border: 1px solid var(--border); border-radius: 14px; cursor: pointer;
+  padding: 13px var(--sp-4); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer;
   font-size: .95rem; font-weight: 700; background: var(--card); color: var(--text);
   transition: transform .12s, filter .15s;
 }
 .btn:hover { filter: brightness(.97); }
 .btn:active { transform: scale(.97); }
 .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
-.btn-lg { width: 100%; padding: 16px; font-size: 1.05rem; border-radius: 16px; box-shadow: var(--shadow); }
+.btn-lg { width: 100%; padding: var(--sp-4); font-size: 1.05rem; border-radius: var(--radius-md); box-shadow: var(--shadow); }
 .btn-danger-solid { background: var(--danger); border-color: var(--danger); color: #fff; }
 .btn-quiet {
   display: block; margin: 10px auto 16px; background: none; border: none; cursor: pointer;
@@ -202,8 +241,8 @@ main { padding: 4px 16px 8px; }
 .goal-sub { font-size: .82rem; color: var(--muted); margin-top: 8px; }
 .goal-card.reached { border: 1.5px solid var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--card)); }
 .goal-card.reached .progress > i { background: var(--accent); }
-.progress { height: 9px; background: var(--border); border-radius: 99px; overflow: hidden; }
-.progress > i { display: block; height: 100%; background: var(--primary); border-radius: 99px; transition: width .6s ease; }
+.progress { height: 9px; background: var(--border); border-radius: var(--radius-pill); overflow: hidden; }
+.progress > i { display: block; height: 100%; background: var(--primary); border-radius: var(--radius-pill); transition: width .6s ease; }
 
 /* ═══════════════ 統計カード ═══════════════ */
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
@@ -338,7 +377,7 @@ main { padding: 4px 16px 8px; }
 .field-label { font-size: .85rem; color: var(--muted); margin-bottom: 8px; }
 .field input[type="date"], .field input[type="number"], .field input[type="time"], .field input[type="text"], .field select, textarea {
   width: 100%; padding: 12px; border: 1.5px solid var(--border);
-  border-radius: 12px; font-size: 1rem; background: var(--bg); color: var(--text);
+  border-radius: var(--radius-md); font-size: 1rem; background: var(--bg); color: var(--text);
   font-family: inherit;
 }
 .field input[type="range"] { width: 100%; accent-color: var(--primary); }
@@ -356,7 +395,7 @@ textarea { min-height: 84px; resize: vertical; margin-bottom: 12px; }
 
 .trigger-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
 .trigger {
-  border: 1.5px solid var(--border); background: var(--bg); border-radius: 99px;
+  border: 1.5px solid var(--border); background: var(--bg); border-radius: var(--radius-pill);
   padding: 8px 14px; font-size: .84rem; cursor: pointer; transition: .15s;
 }
 .trigger.selected { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 14%, var(--bg)); color: var(--primary); font-weight: 700; }
@@ -410,7 +449,7 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
 .dot.today { background: var(--accent); }
 
 .day-detail {
-  margin-top: 14px; padding: 14px; border-radius: 14px; background: var(--bg);
+  margin-top: 14px; padding: 14px; border-radius: var(--radius-md); background: var(--bg);
   border: 1px solid var(--border); font-size: .88rem;
 }
 .day-detail .dd-date { font-weight: 700; margin-bottom: 4px; }
@@ -445,7 +484,7 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
 .nav-item {
   flex: 1; max-width: 130px; display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 1px; background: none; border: none; cursor: pointer;
-  border-radius: 14px; color: var(--muted); transition: .15s; padding: 4px 0;
+  border-radius: var(--radius-md); color: var(--muted); transition: .15s; padding: 4px 0;
 }
 .nav-item .nav-emoji { font-size: 1.3rem; line-height: 1.2; filter: grayscale(1) opacity(.7); transition: .15s; }
 .nav-item .nav-label { font-size: .66rem; font-weight: 700; }
@@ -457,7 +496,7 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
   position: fixed; right: 16px; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 14px);
   z-index: 40; border: none; cursor: pointer;
   background: linear-gradient(135deg, #f43f5e, #e11d48); color: #fff;
-  font-size: .9rem; font-weight: 800; padding: 13px 18px; border-radius: 99px;
+  font-size: .9rem; font-weight: 800; padding: 13px 18px; border-radius: var(--radius-pill);
   box-shadow: 0 6px 18px rgba(225, 29, 72, .4);
   transition: transform .15s;
 }
@@ -471,7 +510,7 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
 .overlay.hidden, .sheet.hidden, .toast.hidden { display: none; }
 
 .sos-box {
-  background: var(--card); border-radius: 24px; padding: 26px 22px;
+  background: var(--card); border-radius: var(--radius-xl); padding: 26px 22px;
   width: 100%; max-width: 400px; text-align: center; max-height: 92vh; overflow-y: auto;
 }
 .sos-box h2 { font-size: 1.1rem; margin-bottom: 4px; }
@@ -521,7 +560,7 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
 /* ═══════════════ シート（下から出るパネル） ═══════════════ */
 .sheet { position: fixed; inset: 0; z-index: 90; background: rgba(8, 12, 24, .55); display: flex; align-items: flex-end; justify-content: center; }
 .sheet-panel {
-  background: var(--card); border-radius: 24px 24px 0 0; padding: 10px 20px calc(22px + env(safe-area-inset-bottom, 0px));
+  background: var(--card); border-radius: var(--radius-xl) var(--radius-xl) 0 0; padding: 10px 20px calc(22px + env(safe-area-inset-bottom, 0px));
   width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto;
   animation: sheetUp .3s cubic-bezier(.22, 1, .36, 1);
 }
@@ -536,7 +575,7 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
 .sec-title:first-of-type { margin-top: 4px; }
 .relapse-copy { font-size: .9rem; background: var(--bg); border-radius: 12px; padding: 13px 14px; margin-bottom: 16px; }
 
-.seg { display: flex; gap: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin-bottom: 16px; }
+.seg { display: flex; gap: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 4px; margin-bottom: 16px; }
 .seg-btn {
   flex: 1; border: none; background: none; padding: 9px 6px; border-radius: 9px;
   font-size: .88rem; font-weight: 700; cursor: pointer; color: var(--muted); transition: .15s;
@@ -551,13 +590,9 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
 .toggle-field input[type="checkbox"]:checked::after { transform: translateX(20px); }
 .hint { font-size: .78rem; color: var(--muted); margin: -6px 0 14px; }
 .hint-warn {
-  color: #b45309; background: color-mix(in srgb, #f59e0b 12%, transparent);
+  color: var(--hint-warn); background: color-mix(in srgb, #f59e0b 12%, transparent);
   border: 1px solid color-mix(in srgb, #f59e0b 35%, transparent);
-  border-radius: 10px; padding: 9px 11px; margin-top: 2px;
-}
-:root[data-theme="dark"] .hint-warn { color: #fcd34d; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]):not([data-theme="dark"]) .hint-warn { color: #fcd34d; }
+  border-radius: var(--radius-sm); padding: 9px 11px; margin-top: 2px;
 }
 .migrate-details {
   margin: -6px 0 14px; border: 1px solid var(--border); border-radius: 12px;
@@ -584,7 +619,7 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
 
 /* ═══════════════ オンボーディング ═══════════════ */
 .ob-box {
-  background: var(--card); border-radius: 24px; padding: 28px 24px 20px;
+  background: var(--card); border-radius: var(--radius-xl); padding: 28px 24px 20px;
   width: 100%; max-width: 420px; max-height: 92vh; overflow-y: auto;
 }
 .ob-emoji { font-size: 2.6rem; text-align: center; margin-bottom: 8px; }
