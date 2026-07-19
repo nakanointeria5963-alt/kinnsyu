@@ -28,7 +28,11 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
 <div id="app">
   <header class="app-header">
     <h1 data-i18n="app.title">🌱 禁酒トラッカー</h1>
-    <button id="settingsBtn" class="icon-btn" data-i18n-aria="aria.settings" aria-label="設定を開く">⚙️</button>
+    <button id="settingsBtn" class="icon-btn" data-i18n-aria="aria.settings" aria-label="設定を開く">
+      <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3.1"/><path d="M12 3V5.4 M12 18.6V21 M4.9 4.9 6.6 6.6 M17.4 17.4 19.1 19.1 M3 12H5.4 M18.6 12H21 M4.9 19.1 6.6 17.4 M17.4 6.6 19.1 4.9"/>
+      </svg>
+    </button>
   </header>
 
   <main id="main">
@@ -119,22 +123,22 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
 
       <div class="stat-grid">
         <div class="card stat">
-          <span class="stat-emoji">💰</span>
+          <span class="stat-emoji" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="17" rx="7" ry="2.6"/><ellipse cx="12" cy="12.3" rx="7" ry="2.6"/><ellipse cx="12" cy="7.6" rx="7" ry="2.6"/></svg></span>
           <span class="stat-num" id="moneySaved">¥0</span>
           <span class="stat-cap" data-i18n="stat.money">通算の節約金額</span>
         </div>
         <div class="card stat">
-          <span class="stat-emoji">🔥</span>
+          <span class="stat-emoji" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.3C11 6.2 8.2 7.6 8.2 11.5A3.8 3.8 0 0 0 12 15.3A3.8 3.8 0 0 0 15.8 11.5C15.8 10.4 15.4 9.7 15 9.1C15.1 10 14.7 10.7 14.1 11.1C14.5 9.6 13.7 8.7 13.1 8.3C13.3 9.2 12.8 9.7 12.3 10C13 7.7 11.3 6.6 12 3.3Z M9.3 15.5C9.7 18 10.7 19.8 12 20.6C13.3 19.8 14.3 18 14.7 15.5"/></svg></span>
           <span class="stat-num" id="calSaved">0</span>
           <span class="stat-cap" data-i18n="stat.cal">通算の削減kcal</span>
         </div>
         <div class="card stat">
-          <span class="stat-emoji">🍺</span>
+          <span class="stat-emoji" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4H17L15.4 18C15.2 19.7 13.8 21 12 21C10.2 21 8.8 19.7 8.6 18Z M7.6 9H16.4"/></svg></span>
           <span class="stat-num" id="drinksAvoided">0</span>
           <span class="stat-cap" data-i18n="stat.drinks">飲まなかった杯数</span>
         </div>
         <div class="card stat">
-          <span class="stat-emoji">✨</span>
+          <span class="stat-emoji" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 13.5 10.5 20 12 13.5 13.5 12 20 10.5 13.5 4 12 10.5 10.5Z"/></svg></span>
           <span class="stat-num" id="soberRate">100%</span>
           <span class="stat-cap" data-i18n="stat.rate">開始からの禁酒率</span>
         </div>
@@ -243,10 +247,22 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
   </main>
 
   <nav class="bottom-nav" role="tablist" aria-label="メインナビゲーション">
-    <button class="nav-item active" data-tab="home" role="tab" aria-selected="true"><span class="nav-emoji">🏠</span><span class="nav-label" data-i18n="nav.home">ホーム</span></button>
-    <button class="nav-item" data-tab="log" role="tab" aria-selected="false"><span class="nav-emoji">✍️</span><span class="nav-label" data-i18n="nav.log">記録</span></button>
-    <button class="nav-item" data-tab="stats" role="tab" aria-selected="false"><span class="nav-emoji">📊</span><span class="nav-label" data-i18n="nav.stats">統計</span></button>
-    <button class="nav-item" data-tab="badges" role="tab" aria-selected="false"><span class="nav-emoji">🏆</span><span class="nav-label" data-i18n="nav.badges">達成</span></button>
+    <button class="nav-item active" data-tab="home" role="tab" aria-selected="true">
+      <span class="nav-emoji" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4 20 11 M6 10.3V20H18V10.3 M10 20V14H14V20"/></svg></span>
+      <span class="nav-label" data-i18n="nav.home">ホーム</span>
+    </button>
+    <button class="nav-item" data-tab="log" role="tab" aria-selected="false">
+      <span class="nav-emoji" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 19 9 8 20H4V16L15 5Z M13 7 17 11"/></svg></span>
+      <span class="nav-label" data-i18n="nav.log">記録</span>
+    </button>
+    <button class="nav-item" data-tab="stats" role="tab" aria-selected="false">
+      <span class="nav-emoji" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20H21 M6 20V13 M12 20V9 M18 20V15"/><g fill="currentColor" stroke="none"><circle cx="6" cy="13" r="1.1"/><circle cx="12" cy="9" r="1.1"/><circle cx="18" cy="15" r="1.1"/></g></svg></span>
+      <span class="nav-label" data-i18n="nav.stats">統計</span>
+    </button>
+    <button class="nav-item" data-tab="badges" role="tab" aria-selected="false">
+      <span class="nav-emoji" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4H17V9C17 13 14.7 15.2 12 15.2C9.3 15.2 7 13 7 9Z M7 5H4C4 8 5.5 9.6 7 10.1 M17 5H20C20 8 18.5 9.6 17 10.1 M12 15.2V18 M9 21H15 M9.4 21 10 18H14L14.6 21"/></svg></span>
+      <span class="nav-label" data-i18n="nav.badges">達成</span>
+    </button>
   </nav>
 
   <button id="sosBtn" class="sos-fab" data-i18n="sos.fab" aria-label="SOS">🆘 飲みたい</button>
