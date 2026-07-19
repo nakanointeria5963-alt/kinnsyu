@@ -25,6 +25,7 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+<a href="#main" class="skip-link" data-i18n="aria.skipToContent">本文へスキップ</a>
 <div id="app">
   <header class="app-header">
     <h1 data-i18n="app.title">🌱 禁酒トラッカー</h1>
@@ -236,6 +237,7 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
     <section id="badges" class="view" role="tabpanel" aria-label="達成">
       <div class="card">
         <h2 data-i18n="badges.title">マイルストーン</h2>
+        <p id="badgesEmptyHint" class="empty" hidden data-i18n="badges.emptyHint">まずは1日から。続けるほどここにバッジが増えていきます。</p>
         <div id="badgeGrid" class="badge-grid"></div>
       </div>
       <div class="card">

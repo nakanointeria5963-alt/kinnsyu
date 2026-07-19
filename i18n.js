@@ -10,6 +10,7 @@ window.I18N = (() => {
     'app.title': '🌱 禁酒トラッカー',
     'aria.settings': '設定を開く',
     'aria.close': '閉じる',
+    'aria.skipToContent': '本文へスキップ',
 
     'greet.name': '{name}さん、',
     'greet.morning': 'おはようございます ☀️',
@@ -117,6 +118,7 @@ window.I18N = (() => {
     'dd.unrelapsed': 'スリップの記録を取り消しました',
 
     'badges.title': 'マイルストーン',
+    'badges.emptyHint': 'まずは1日から。続けるほどここにバッジが増えていきます。',
     'badges.share': 'シェア',
     'badges.shareHint': 'がんばりを共有してモチベーションに。日数と節約額だけで、個人情報は含まれません。',
     'badges.shareBtn': '📣 実績をシェアする',
@@ -270,6 +272,7 @@ window.I18N = (() => {
     'app.title': '🌱 Sober Tracker',
     'aria.settings': 'Open settings',
     'aria.close': 'Close',
+    'aria.skipToContent': 'Skip to content',
 
     'greet.name': '{name}, ',
     'greet.morning': 'Good morning ☀️',
@@ -377,6 +380,7 @@ window.I18N = (() => {
     'dd.unrelapsed': 'Slip removed',
 
     'badges.title': 'Milestones',
+    'badges.emptyHint': 'Day 1 is the first step. Keep going and badges will unlock here.',
     'badges.share': 'Share',
     'badges.shareHint': 'Share your progress for motivation. Only your day count and savings — no personal data.',
     'badges.shareBtn': '📣 Share my progress',

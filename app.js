@@ -645,6 +645,7 @@ function renderTriggerInsight() {
 /* --- バッジ --- */
 function renderBadges() {
   const days = currentDays();
+  $('#badgesEmptyHint').hidden = days >= BADGES[0].days;
   $('#badgeGrid').innerHTML = BADGES.map(b => {
     const on = days >= b.days;
     const date = state.badgeDates[b.days];
