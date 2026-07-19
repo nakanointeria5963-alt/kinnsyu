@@ -6,7 +6,10 @@
   "scripts": {
     "test": "node tests/smoke.cjs",
     "stamp-sw": "node tools/stamp-sw.cjs",
-    "stamp-sw:check": "node tools/stamp-sw.cjs --check"
+    "stamp-sw:check": "node tools/stamp-sw.cjs --check",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{js,cjs,json,css,html}\"",
+    "format:check": "prettier --check \"**/*.{js,cjs,json,css,html}\""
   },
   "repository": {
     "type": "git",
@@ -14,6 +17,8 @@
   },
   "license": "ISC",
   "devDependencies": {
-    "playwright": "^1.48.0"
+    "eslint": "^10.7.0",
+    "playwright": "^1.48.0",
+    "prettier": "^3.9.5"
   }
 }

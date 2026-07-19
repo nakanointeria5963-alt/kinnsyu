@@ -129,7 +129,6 @@ function check(name, cond) {
   // ── 6. カレンダー詳細 ──
   await page.click('.nav-item[data-tab="stats"]');
   await page.waitForTimeout(300);
-  const todayNum = String(new Date().getDate());
   await page.click(`#calendar button.cal-cell.today`);
   await page.waitForTimeout(200);
   const dd = await page.textContent('#dayDetail');

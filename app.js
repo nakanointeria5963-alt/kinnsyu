@@ -1,5 +1,10 @@
 'use strict';
 
+/* このファイルの中身は全体をIIFE（即時実行関数）で包み、内部の関数や変数が
+   グローバルスコープ（window）を汚さないようにしている。他のファイルから
+   参照する必要があるものだけ、末尾で意図的に window に公開している。 */
+(function () {
+
 const { $, $$, todayStr, parseDate, diffDays, addDays, fmtDate, escapeHtml, pad, DAY } = Util;
 const t = (k, v) => I18N.t(k, v);
 
@@ -136,7 +141,6 @@ const BADGES = [
   { days: 90,  emoji: '🏆' }, { days: 180, emoji: '💎' }, { days: 365, emoji: '👑' },
 ];
 const badgeTitle = b => t('badge.d' + b.days);
-const badgeSub = b => t('badge.d' + b.days + 's');
 
 /* ═══════════════ 通貨 ═══════════════ */
 const CURRENCIES = { JPY: '¥', USD: '$', EUR: '€', GBP: '£', KRW: '₩' };
@@ -1037,9 +1041,7 @@ function showOnboarding() {
   $('#obStartDate').value = todayStr();
   if (I18N.lang() !== 'ja') $('#obPrice').value = 8;   // 海外向けの現実的な初期値（USD想定）
   $('#onboarding').classList.remove('hidden');
-  let step = 1;
   const go = n => {
-    step = n;
     $$('.ob-step').forEach(p => { p.hidden = Number(p.dataset.step) !== n; });
     $$('#obDots i').forEach((d, i) => d.classList.toggle('on', i === n - 1));
   };
@@ -1453,3 +1455,9 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+/* テスト（tests/smoke.cjs）がスティッキートーストを直接呼び出せるように、
+   このひとつだけ意図的にwindowへ公開する */
+window.toast = toast;
+
+})();
