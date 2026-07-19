@@ -595,7 +595,13 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
   animation: sheetUp .3s cubic-bezier(.22, 1, .36, 1);
 }
 @keyframes sheetUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
-.sheet-grip { width: 42px; height: 5px; border-radius: 99px; background: var(--border); margin: 4px auto 16px; }
+/* 見た目のバーは細いが、指で下にスワイプして閉じられるよう
+   実際の当たり判定はもっと広く取ってある */
+.sheet-grip {
+  width: 100%; height: 30px; margin: -6px auto 4px; display: flex;
+  align-items: center; justify-content: center; cursor: grab; touch-action: none;
+}
+.sheet-grip > i { width: 42px; height: 5px; border-radius: var(--radius-pill); background: var(--border); display: block; }
 .sheet-panel h2 { font-size: 1.1rem; margin-bottom: 16px; }
 .sheet-actions { display: flex; gap: 10px; margin-top: 6px; }
 .sheet-actions .btn { flex: 1; }

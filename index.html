@@ -273,7 +273,7 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
 <!-- ═══════════ 記録シート ═══════════ -->
 <div id="recordSheet" class="sheet hidden" role="dialog" aria-modal="true" aria-label="記録">
   <div class="sheet-panel">
-    <div class="sheet-grip"></div>
+    <div class="sheet-grip" aria-hidden="true"><i></i></div>
     <h2 id="recordDateTitle">今日の記録</h2>
     <p class="field-label" data-i18n="record.mood">今日の気分は？</p>
     <div class="mood-row" id="moodRow">
@@ -308,7 +308,7 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
 <!-- ═══════════ スリップシート ═══════════ -->
 <div id="relapseSheet" class="sheet hidden" role="dialog" aria-modal="true" aria-label="飲んでしまった日の記録">
   <div class="sheet-panel">
-    <div class="sheet-grip"></div>
+    <div class="sheet-grip" aria-hidden="true"><i></i></div>
     <h2 data-i18n="relapse.title">飲んでしまった日を記録</h2>
     <p class="relapse-copy" data-i18n-html="relapse.copy">大丈夫、失敗ではなく学びです。<b>通算の記録と節約額は消えません。</b>連続日数だけがリセットされ、また今日から積み上がります。</p>
     <p class="field-label" data-i18n="relapse.when">いつ飲みましたか？</p>
@@ -335,7 +335,7 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
 <!-- ═══════════ 設定シート ═══════════ -->
 <div id="settingsSheet" class="sheet hidden" role="dialog" aria-modal="true" aria-label="設定">
   <div class="sheet-panel sheet-tall">
-    <div class="sheet-grip"></div>
+    <div class="sheet-grip" aria-hidden="true"><i></i></div>
     <h2 data-i18n="set.title">設定</h2>
 
     <p class="sec-title" data-i18n="set.lang">言語 / Language</p>
@@ -418,7 +418,7 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
 <!-- ═══════════ 肝臓イラストの注意書き ═══════════ -->
 <div id="liverInfoSheet" class="sheet hidden" role="dialog" aria-modal="true" aria-label="肝臓イラストについて">
   <div class="sheet-panel">
-    <div class="sheet-grip"></div>
+    <div class="sheet-grip" aria-hidden="true"><i></i></div>
     <h2 data-i18n="liver.infoTitle">肝臓イラストについて</h2>
     <p class="advice-note liver-info-body" data-i18n="liver.infoBody"></p>
     <div class="sheet-actions">

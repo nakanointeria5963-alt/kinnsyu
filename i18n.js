@@ -264,6 +264,8 @@ window.I18N = (() => {
     'share.text': '🌱 禁酒{days}日目！通算{total}日で {money} 節約しました。今日も一日ずつ。 #禁酒',
     'share.copied': 'シェア用の文章をコピーしました 📋',
     'share.failed': 'この端末ではシェアできませんでした',
+    'share.cardDays': '日 継続中',
+    'share.cardSaved': '通算の節約額 {money}',
     'sw.update': '新しいバージョンがあります',
     'sw.reload': '更新',
   };
@@ -526,6 +528,8 @@ window.I18N = (() => {
     'share.text': '🌱 Day {days} alcohol-free! {total} days total and {money} saved. One day at a time. #sober',
     'share.copied': 'Share text copied 📋',
     'share.failed': 'Sharing isn’t available on this device',
+    'share.cardDays': 'days alcohol-free',
+    'share.cardSaved': 'Saved {money}',
     'sw.update': 'A new version is available',
     'sw.reload': 'Update',
   };

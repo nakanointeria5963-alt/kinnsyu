@@ -1123,6 +1123,35 @@ function closeSheet(sel, fromPop) {
   if (lastFocus && lastFocus.focus) { try { lastFocus.focus({ preventScroll: true }); } catch (e) {} lastFocus = null; }
 }
 
+/* シートを指で下にスワイプして閉じられるようにする（グリップ部分のみ） */
+function enableSheetSwipe(sel) {
+  const overlay = $(sel);
+  const panel = overlay.querySelector('.sheet-panel');
+  const grip = overlay.querySelector('.sheet-grip');
+  if (!panel || !grip) return;
+  let startY = 0, dy = 0, dragging = false;
+  const onStart = (e) => {
+    dragging = true; dy = 0; startY = e.touches[0].clientY;
+    panel.style.transition = 'none';
+  };
+  const onMove = (e) => {
+    if (!dragging) return;
+    dy = Math.max(0, e.touches[0].clientY - startY);
+    panel.style.transform = `translateY(${dy}px)`;
+  };
+  const onEnd = () => {
+    if (!dragging) return;
+    dragging = false;
+    panel.style.transition = '';
+    panel.style.transform = '';
+    if (dy > 90) closeSheet(sel);
+  };
+  grip.addEventListener('touchstart', onStart, { passive: true });
+  grip.addEventListener('touchmove', onMove, { passive: true });
+  grip.addEventListener('touchend', onEnd);
+  grip.addEventListener('touchcancel', onEnd);
+}
+
 window.addEventListener('popstate', () => {
   SHEET_SELS.forEach(s => closeSheet(s, true));
   const sos = $('#sosOverlay');
@@ -1134,9 +1163,66 @@ function buzz(pattern) {
   if (navigator.vibrate) { try { navigator.vibrate(pattern || 12); } catch (e) {} }
 }
 
-/* 実績のシェア（Web Share API → なければクリップボード） */
+/* 実績シェア用のカード画像を生成（Canvas、外部画像は使わない） */
+function generateShareCardBlob() {
+  return new Promise((resolve) => {
+    const W = 1080, H = 1080;
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) { resolve(null); return; }
+
+    const grad = ctx.createLinearGradient(0, 0, W, H);
+    grad.addColorStop(0, '#0f766e');
+    grad.addColorStop(.6, '#115e59');
+    grad.addColorStop(1, '#0b2b27');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = 'rgba(255,255,255,.10)';
+    [[130, 150, 70], [930, 210, 46], [860, 900, 100], [150, 900, 56]].forEach(([x, y, r]) => {
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    });
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fff';
+
+    ctx.globalAlpha = .88;
+    ctx.font = '600 44px sans-serif';
+    ctx.fillText(t('app.title'), W / 2, 170);
+    ctx.globalAlpha = 1;
+
+    ctx.font = '800 320px sans-serif';
+    ctx.fillText(String(currentDays()), W / 2, 540);
+
+    ctx.font = '700 54px sans-serif';
+    ctx.fillText(t('share.cardDays'), W / 2, 620);
+
+    ctx.globalAlpha = .92;
+    ctx.font = '600 46px sans-serif';
+    ctx.fillText(t('share.cardSaved', { money: fmtMoney(savedMoney()) }), W / 2, 800);
+    ctx.globalAlpha = 1;
+
+    canvas.toBlob((blob) => resolve(blob), 'image/png');
+  });
+}
+
+/* 実績のシェア（画像+テキストのWeb Share → テキストのみのWeb Share → クリップボード） */
 async function shareProgress() {
   const text = t('share.text', { days: currentDays(), total: totalSoberDays(), money: fmtMoney(savedMoney()) });
+
+  if (navigator.canShare && navigator.share) {
+    try {
+      const blob = await generateShareCardBlob();
+      if (blob) {
+        const file = new File([blob], 'progress.png', { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], text, title: t('app.title') });
+          return;
+        }
+      }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+  }
   if (navigator.share) {
     try { await navigator.share({ text }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
   }
@@ -1169,6 +1255,8 @@ function toast(msg, action, opts) {
 function init() {
   applyTheme();
   applyLang();
+
+  SHEET_SELS.forEach(enableSheetSwipe);
 
   /* ナビ */
   $$('.nav-item').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
@@ -1331,7 +1419,14 @@ function init() {
   if (newly.length) { celebrate(); toast(t('badge.toast', { emoji: newly[0].emoji, title: badgeTitle(newly[0]) })); }
 
   if (!state.onboarded) showOnboarding();
-  else maybeNudgeBackup();
+  else {
+    maybeNudgeBackup();
+    /* ホーム画面アイコンの長押しショートカット（manifest.jsonのshortcuts）から起動した場合 */
+    const action = new URLSearchParams(location.search).get('action');
+    if (action === 'record') openRecordSheet(todayStr());
+    else if (action === 'sos') openSos();
+    if (action) history.replaceState(null, '', location.pathname);
+  }
 
   scheduleReminder();
   updatePeriodicSync();
