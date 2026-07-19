@@ -48,6 +48,26 @@ const defaultState = {
   weekStart: 'sun',         // カレンダーの週の始まり ('sun' | 'mon')
 };
 
+/* 保存データの形式が変わったとき、バージョン番号を1つずつ順番に上げながら
+   移行処理を適用する仕組み。将来また項目を追加・変更しても、ここに
+   「n番目への移行」を1つ足すだけで、既存ユーザーの記録を壊さずに
+   引き継げるようにするためのもの。
+   （下の load() が実行時にすぐ呼ばれるため、この定義は load() より
+   前に置く必要がある＝constは関数と違って巻き上げられないため） */
+const MIGRATIONS = {
+  2: (s) => { s.onboarded = true; return s; }, // v1→v2: オンボーディング導入前のユーザーはスキップ扱いにする
+};
+function migrateState(s, fromVersion) {
+  let v = Number(fromVersion) || 1;
+  while (v < STATE_VERSION) {
+    v++;
+    const step = MIGRATIONS[v];
+    if (step) { try { s = step(s); } catch (e) { /* 1段階の移行が失敗しても他のデータは活かす */ } }
+    s.version = v;
+  }
+  return s;
+}
+
 let state = load();
 if (!state.deviceSalt) {
   state.deviceSalt = Math.random().toString(36).slice(2, 12);
@@ -59,11 +79,9 @@ function load() {
     const raw = localStorage.getItem(STORE_KEY);
     if (!raw) return { ...defaultState };
     const parsed = JSON.parse(raw);
-    const s = { ...defaultState, ...parsed };
-    if (!parsed.version || parsed.version < STATE_VERSION) {
-      s.onboarded = true;                    // 既存ユーザーはオンボーディングを飛ばす
-      s.version = STATE_VERSION;
-    }
+    if (!parsed || typeof parsed !== 'object') return { ...defaultState };
+    let s = { ...defaultState, ...parsed };
+    if (!parsed.version || parsed.version < STATE_VERSION) s = migrateState(s, parsed.version);
     return s;
   } catch (e) {
     return { ...defaultState };
@@ -1454,7 +1472,38 @@ function init() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+/* 何らかの理由で起動処理そのものが失敗した場合、白い画面のまま固まる
+   のではなく「データは無事です」と伝えてから再読み込みを促す。
+   I18N側が原因で失敗した可能性もあるため、ここでは翻訳を使わず
+   ブラウザの言語設定から直接ja/enだけを判定する。 */
+function showFatalError() {
+  try {
+    const ja = !(navigator.language || '').toLowerCase().startsWith('en');
+    document.body.innerHTML =
+      '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;' +
+      'justify-content:center;text-align:center;gap:16px;padding:32px;' +
+      'font-family:-apple-system,BlinkMacSystemFont,\'Hiragino Kaku Gothic ProN\',sans-serif;">' +
+      '<div style="font-size:2.4rem;">🌱</div>' +
+      '<p style="font-size:1.02rem;font-weight:700;max-width:320px;line-height:1.7;color:#10221f;">' +
+      (ja
+        ? '問題が発生しました。この端末に保存されている記録は無事です。<br>お手数ですが、再読み込みをお試しください。'
+        : 'Something went wrong. Your records saved on this device are safe.<br>Please try reloading the page.') +
+      '</p>' +
+      '<button type="button" id="fatalReloadBtn" style="padding:13px 30px;border-radius:14px;border:none;' +
+      'background:#0d9488;color:#fff;font-weight:700;font-size:1rem;cursor:pointer;">' +
+      (ja ? '再読み込み' : 'Reload') + '</button></div>';
+    const btn = document.getElementById('fatalReloadBtn');
+    if (btn) btn.addEventListener('click', () => location.reload());
+  } catch (e2) { /* ここまで失敗したら打てる手がない */ }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    init();
+  } catch (e) {
+    showFatalError();
+  }
+});
 
 /* テスト（tests/smoke.cjs）がスティッキートーストを直接呼び出せるように、
    このひとつだけ意図的にwindowへ公開する */
