@@ -14,6 +14,7 @@
   --primary-deep: #115e59;
   --danger: #e11d48;
   --accent: #f59e0b;
+  --special: #8b5cf6;
   --border: #e3ebea;
   --shadow: 0 1px 2px rgba(16, 34, 31, .05), 0 4px 16px rgba(16, 34, 31, .06);
   --radius: 20px;
@@ -87,6 +88,9 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+/* hidden属性は、要素側で display を明示的に指定しているクラス（.field など）
+   があると打ち消されてしまうため、ここで確実に優先させる */
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
@@ -223,6 +227,7 @@ main { padding: 4px 16px 8px; }
 .ws-day.faint .ws-icon { opacity: .45; }
 .ws-day.today { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .75); background: rgba(255, 255, 255, .18); }
 .ws-day.relapse { background: rgba(225, 29, 72, .35); }
+.ws-day.exception { background: color-mix(in srgb, var(--special) 35%, transparent); }
 
 /* ═══════════════ ボタン ═══════════════ */
 .btn {
@@ -467,12 +472,15 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
 .cal-cell.sober { background: color-mix(in srgb, var(--primary) 20%, transparent); }
 .cal-cell.relapse { background: color-mix(in srgb, var(--danger) 22%, transparent); }
 .cal-cell.relapse::after { content: "×"; position: absolute; bottom: 0; right: 4px; font-size: .58rem; color: var(--danger); }
+.cal-cell.exception { background: color-mix(in srgb, var(--special) 22%, transparent); }
+.cal-cell.exception::after { content: "✦"; position: absolute; bottom: 0; right: 4px; font-size: .58rem; color: var(--special); }
 .cal-cell.today { outline: 2px solid var(--accent); font-weight: 800; }
 .cal-cell.selected { outline: 2.5px solid var(--primary); }
 .cal-legend { display: flex; gap: 16px; justify-content: center; margin-top: 12px; font-size: .78rem; color: var(--muted); }
 .cal-legend i.dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
 .dot.sober { background: var(--primary); }
 .dot.relapse { background: var(--danger); }
+.dot.exception { background: var(--special); }
 .dot.today { background: var(--accent); }
 
 .day-detail {

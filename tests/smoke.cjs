@@ -283,7 +283,65 @@ function check(name, cond) {
   await page.reload(); await page.waitForTimeout(600);
   check('肝臓: リロード後もliver-seen状態を保持', await page.$eval('#heroSide', el => el.classList.contains('liver-seen')));
 
-  // ── 7i. 「すべてのデータを削除」で肝臓イラストの脈打つ演出も最初の状態に戻る ──
+  // ── 7i. 特別な日（例外日）機能。ここまでの操作で「今日」は失敗記録が残ったまま
+  //        （7g・未undo）。継続0日・通算9日・節約¥13,500の状態から検証する。 ──
+  await page.click('.nav-item[data-tab="home"]');
+  await page.waitForTimeout(200);
+  check('特別な日ボタンあり', !!(await page.$('#exceptionBtn')));
+  await page.click('#exceptionBtn');
+  await page.waitForTimeout(250);
+  check('特別な日シートが開く(今日が選択された状態)',
+    await page.$eval('#exceptionDaySeg .seg-btn[data-day="today"]', el => el.classList.contains('active')));
+  await page.click('#saveExceptionBtn'); // メモ未入力 → 保存できない
+  await page.waitForTimeout(200);
+  check('メモ未入力では保存できない', !(await page.$eval('#exceptionSheet', el => el.classList.contains('hidden'))));
+  await page.click('#exceptionReasonChips .trigger[data-reason="結婚式"]');
+  check('理由チップタップでメモ欄に自動入力される', (await page.inputValue('#exceptionNote')) === '結婚式');
+  await page.click('#saveExceptionBtn');
+  await page.waitForTimeout(600);
+  check('特別な日シートが閉じる', await page.$eval('#exceptionSheet', el => el.classList.contains('hidden')));
+  check('特別な日にすると、同日の失敗記録が置き換わり継続日数が回復する',
+    (await page.textContent('#chipStreak b')) === '10');
+  check('特別な日も実際に飲んだ日として節約額には数えない(増えない)',
+    (await page.textContent('#moneySaved')) === '¥13,500');
+  const liverAfterException = await page.$eval('#liverBody', el => el.getAttribute('fill'));
+  check('肝臓は継続日数と別に、特別な日でも最も濃い色に戻る', liverAfterException === 'rgb(43, 24, 16)');
+
+  await page.click('.nav-item[data-tab="stats"]');
+  await page.waitForTimeout(200);
+  const todayCellClass = await page.$eval('.cal-cell.today', el => el.className);
+  check('カレンダーの今日のセルがexceptionクラスを持つ', /\bexception\b/.test(todayCellClass));
+  await page.click('.cal-cell.today');
+  await page.waitForTimeout(200);
+  const ddText = await page.textContent('#dayDetail');
+  check('日付詳細に特別な日のメモが表示される', ddText.includes('結婚式'));
+  check('「特別な日を取り消す」ボタンが表示される', !!(await page.$('#ddUnexception')));
+  await page.click('#ddUnexception');
+  await page.waitForTimeout(300);
+  await page.click('.nav-item[data-tab="home"]');
+  await page.waitForTimeout(200);
+  check('特別な日を取り消しても継続日数は変わらない(もともと途切れていないため)',
+    (await page.textContent('#chipStreak b')) === '10');
+  check('特別な日を取り消すと、また節約日としてカウントされ節約額が増える',
+    (await page.textContent('#moneySaved')) === '¥15,000');
+  const liverAfterDelete = await page.$eval('#liverBody', el => el.getAttribute('fill'));
+  check('特別な日を取り消すと肝臓の色も若返る', liverAfterDelete !== 'rgb(43, 24, 16)');
+
+  // これからの予定として登録 → 過ぎるまでは今の日数・節約額に影響しない
+  await page.click('#exceptionBtn');
+  await page.waitForTimeout(250);
+  await page.click('#exceptionDaySeg .seg-btn[data-day="future"]');
+  await page.waitForTimeout(150);
+  check('これからの予定を選ぶと日付欄が出る', !(await page.$eval('#exceptionDateField', el => el.hidden)));
+  await page.click('#exceptionReasonChips .trigger[data-reason="旅行"]');
+  await page.click('#saveExceptionBtn');
+  await page.waitForTimeout(600);
+  check('未来の特別な日を予約しても、現在の継続日数は変わらない',
+    (await page.textContent('#chipStreak b')) === '10');
+  check('未来の特別な日を予約しても、現在の節約額は変わらない',
+    (await page.textContent('#moneySaved')) === '¥15,000');
+
+  // ── 7j. 「すべてのデータを削除」で肝臓イラストの脈打つ演出も最初の状態に戻る ──
   page.once('dialog', d => d.accept());
   await page.click('#settingsBtn');
   await page.waitForTimeout(300);

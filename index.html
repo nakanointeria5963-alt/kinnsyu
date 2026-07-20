@@ -102,6 +102,7 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
       </div>
 
       <button id="recordTodayBtn" class="btn btn-primary btn-lg" data-i18n="btn.recordToday">✅ 今日を記録する</button>
+      <button id="exceptionBtn" class="btn-quiet" data-i18n="btn.exception">🎉 特別な日として記録する…</button>
       <button id="relapseBtn" class="btn-quiet" data-i18n="btn.relapse">飲んでしまった日を記録する…</button>
 
       <div class="card goal-card" id="goalCard">
@@ -215,6 +216,7 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
         <div class="cal-legend">
           <span><i class="dot sober"></i><span data-i18n="legend.sober">禁酒</span></span>
           <span><i class="dot relapse"></i><span data-i18n="legend.relapse">飲酒</span></span>
+          <span><i class="dot exception"></i><span data-i18n="legend.exception">特別な日</span></span>
           <span><i class="dot today"></i><span data-i18n="legend.today">今日</span></span>
         </div>
         <div id="dayDetail" class="day-detail" hidden></div>
@@ -328,6 +330,46 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
     <div class="sheet-actions">
       <button id="saveRelapseBtn" class="btn btn-danger-solid" data-i18n="relapse.save">記録して再開する</button>
       <button id="closeRelapse" class="btn" data-i18n="relapse.cancel">やめる</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 特別な日シート ═══════════ -->
+<div id="exceptionSheet" class="sheet hidden" role="dialog" aria-modal="true" aria-label="特別な日を記録">
+  <div class="sheet-panel">
+    <div class="sheet-grip" aria-hidden="true"><i></i></div>
+    <h2 data-i18n="exception.title">特別な日として記録</h2>
+    <p class="relapse-copy" data-i18n="exception.copy">結婚式や飲み会など、事前に決めた特別な日はこちら。この日に飲んでも継続日数は途切れません。</p>
+    <p class="field-label" data-i18n="exception.when">いつですか？</p>
+    <div class="seg" id="exceptionDaySeg">
+      <button class="seg-btn active" data-day="today" data-i18n="exception.today">今日</button>
+      <button class="seg-btn" data-day="past" data-i18n="exception.past">過去の日付</button>
+      <button class="seg-btn" data-day="future" data-i18n="exception.future">これからの予定</button>
+    </div>
+    <label class="field" id="exceptionDateField" hidden>
+      <span data-i18n="exception.dateLabel">日付を選んでください</span>
+      <input type="date" id="exceptionDate" />
+    </label>
+    <p class="field-label" data-i18n="exception.reasonLabel">どんな日ですか？（タップで入力）</p>
+    <div class="trigger-row" id="exceptionReasonChips">
+      <button class="trigger" data-reason="飲み会" data-i18n="exreason.飲み会">🍻 飲み会</button>
+      <button class="trigger" data-reason="忘年会" data-i18n="exreason.忘年会">🎍 忘年会</button>
+      <button class="trigger" data-reason="新年会" data-i18n="exreason.新年会">🎊 新年会</button>
+      <button class="trigger" data-reason="歓送迎会" data-i18n="exreason.歓送迎会">👋 歓送迎会</button>
+      <button class="trigger" data-reason="結婚式" data-i18n="exreason.結婚式">💒 結婚式</button>
+      <button class="trigger" data-reason="誕生日" data-i18n="exreason.誕生日">🎂 誕生日</button>
+      <button class="trigger" data-reason="同窓会" data-i18n="exreason.同窓会">🎓 同窓会</button>
+      <button class="trigger" data-reason="記念日" data-i18n="exreason.記念日">💐 記念日</button>
+      <button class="trigger" data-reason="出張・接待" data-i18n="exreason.出張・接待">💼 出張・接待</button>
+      <button class="trigger" data-reason="旅行" data-i18n="exreason.旅行">✈️ 旅行</button>
+    </div>
+    <label class="field">
+      <span data-i18n="exception.noteLabel">メモ（必須）</span>
+      <textarea id="exceptionNote" data-i18n-ph="exception.notePh" placeholder="例: 友人の結婚式"></textarea>
+    </label>
+    <div class="sheet-actions">
+      <button id="saveExceptionBtn" class="btn btn-primary" data-i18n="exception.save">記録する</button>
+      <button id="closeException" class="btn" data-i18n="exception.cancel">やめる</button>
     </div>
   </div>
 </div>

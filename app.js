@@ -30,6 +30,8 @@ const defaultState = {
   lastReminded: '',
   relapses: [],             // 飲んでしまった日 (YYYY-MM-DD)
   relapseNotes: {},         // { date: きっかけメモ }
+  exceptions: [],           // 事前に決めた「特別な日」(継続日数は途切れない) (YYYY-MM-DD)
+  exceptionReasons: {},     // { date: 理由メモ }
   logs: {},                 // { date: { mood, craving, note, triggers[] } }
   badgeDates: {},           // { 日数: 達成日 }
   reasons: [],              // 禁酒する理由
@@ -131,12 +133,28 @@ function streakStart() {
 }
 function currentDays() { return Math.max(0, diffDays(todayStr(), streakStart())); }
 function elapsedDays() { return Math.max(0, diffDays(todayStr(), state.startDate)); }
-function relapseCount() {
+/* 節約金額・カロリーの計算では「特別な日」も実際に飲んだ日として除外する
+   （継続日数とは別に、正直な集計を保つため） */
+function drinkingDayCount() {
   const t = todayStr();
-  return state.relapses.filter(d => d >= state.startDate && d <= t).length;
+  return new Set([...state.relapses, ...state.exceptions].filter(d => d >= state.startDate && d <= t)).size;
 }
-function totalSoberDays() { return Math.max(0, elapsedDays() - relapseCount()); }
+function totalSoberDays() { return Math.max(0, elapsedDays() - drinkingDayCount()); }
 function isRelapseDay(ds) { return state.relapses.includes(ds); }
+function isExceptionDay(ds) { return state.exceptions.includes(ds); }
+
+/* 肝臓イラストは継続日数（ストリーク）とは別に、失敗日・特別な日を問わず
+   「実際に飲んだ最後の日」からの経過日数で回復させる。特別な日を一度も
+   使っていなければ streakStart() と同じ結果になり、見え方は変わらない。 */
+function lastDrinkDate() {
+  const t = todayStr();
+  const dates = [...state.relapses, ...state.exceptions].filter(d => d >= state.startDate && d <= t);
+  return dates.length ? dates.sort().pop() : null;
+}
+function daysSinceLastDrink() {
+  const last = lastDrinkDate();
+  return last ? Math.max(0, diffDays(todayStr(), addDays(last, 1))) : elapsedDays();
+}
 
 /* 過去に遡って「飲んでしまった日」を追加/削除しても正しく再計算されるよう、
    保存済みの値を書き換えるのではなく、開始日〜今日を relapses で区切った
@@ -241,7 +259,7 @@ function renderHero() {
     ? t('hero.nextBadge', { emoji: next.emoji, title: badgeTitle(next), n: next.days - days })
     : t('hero.allBadges');
 
-  renderLiver(days);
+  renderLiver(daysSinceLastDrink());
   renderLiverInfoBtn();
 }
 
@@ -290,10 +308,11 @@ function renderWeekStrip() {
     const ds = addDays(today, -i);
     const log = state.logs[ds];
     const relapse = isRelapseDay(ds);
+    const exception = isExceptionDay(ds);
     const inRange = ds >= state.startDate;
-    const icon = relapse ? '🍺' : log ? (MOOD_EMOJI[log.mood] || '📝') : inRange ? '🌱' : '·';
-    const cls = 'ws-day' + (ds === today ? ' today' : '') + (relapse ? ' relapse' : '') +
-      (!log && !relapse ? ' faint' : '');
+    const icon = relapse ? '🍺' : exception ? '🎉' : log ? (MOOD_EMOJI[log.mood] || '📝') : inRange ? '🌱' : '·';
+    const cls = 'ws-day' + (ds === today ? ' today' : '') + (relapse ? ' relapse' : '') + (exception ? ' exception' : '') +
+      (!log && !relapse && !exception ? ' faint' : '');
     html += `<button class="${cls}" data-date="${ds}" aria-label="${escapeHtml(t('ws.dayAria', { d: fmtDate(ds) }))}">
       <span class="ws-dow">${dows[parseDate(ds).getDay()]}</span><span class="ws-icon">${icon}</span></button>`;
   }
@@ -531,10 +550,13 @@ function renderCalendar() {
     const ds = `${y}-${pad(m + 1)}-${pad(d)}`;
     let cls = 'cal-cell';
     if (isRelapseDay(ds)) cls += ' relapse';
+    else if (isExceptionDay(ds)) cls += ' exception';
     else if (ds >= state.startDate && ds <= today) cls += ' sober';
     if (ds === today) cls += ' today';
     if (ds === selectedDay) cls += ' selected';
-    const tappable = ds <= today;
+    /* 未来の日付は基本タップ不可だが、事前予約した特別な日だけは
+       確認・取り消しができるようタップ可能にする */
+    const tappable = ds <= today || isExceptionDay(ds);
     html += tappable
       ? `<button class="${cls}" data-date="${ds}">${d}</button>`
       : `<div class="${cls}" style="opacity:.4">${d}</div>`;
@@ -554,11 +576,14 @@ function renderDayDetail() {
   const box = $('#dayDetail');
   if (!selectedDay) { box.hidden = true; return; }
   const ds = selectedDay;
+  const today = todayStr();
   const log = state.logs[ds];
   const relapse = isRelapseDay(ds);
+  const exception = isExceptionDay(ds);
   const before = ds < state.startDate;
+  const future = ds > today;
 
-  let status = before ? t('dd.before') : relapse ? t('dd.drank') : t('dd.sober');
+  let status = before ? t('dd.before') : relapse ? t('dd.drank') : exception ? t('dd.exception') : t('dd.sober');
   let body = '';
   if (log) {
     body += `<div>${escapeHtml(t('dd.mood', { emoji: MOOD_EMOJI[log.mood] || '', n: log.craving }))}</div>`;
@@ -566,21 +591,32 @@ function renderDayDetail() {
     if (log.note) body += `<div>${escapeHtml(log.note)}</div>`;
   }
   if (relapse && state.relapseNotes[ds]) body += `<div>${escapeHtml(t('dd.note', { note: state.relapseNotes[ds] }))}</div>`;
+  if (exception && state.exceptionReasons[ds]) body += `<div>${escapeHtml(t('dd.exceptionNote', { note: state.exceptionReasons[ds] }))}</div>`;
 
-  let actions = `<button class="btn" id="ddEdit">${escapeHtml(t(log ? 'dd.edit' : 'dd.add'))}</button>`;
+  let actions = '';
+  if (!future) actions += `<button class="btn" id="ddEdit">${escapeHtml(t(log ? 'dd.edit' : 'dd.add'))}</button>`;
   if (relapse) actions += `<button class="btn" id="ddUnrelapse">${escapeHtml(t('dd.unrelapse'))}</button>`;
-  else if (!before) actions += `<button class="btn" id="ddRelapse">${escapeHtml(t('dd.relapse'))}</button>`;
+  else if (exception) actions += `<button class="btn" id="ddUnexception">${escapeHtml(t('dd.unexception'))}</button>`;
+  else if (!before && !future) actions += `<button class="btn" id="ddRelapse">${escapeHtml(t('dd.relapse'))}</button>`;
 
   box.hidden = false;
   box.innerHTML = `<div class="dd-date">${fmtDate(ds)} — ${status}</div>${body}<div class="dd-actions">${actions}</div>`;
 
-  $('#ddEdit').addEventListener('click', () => openRecordSheet(ds));
+  const ed = $('#ddEdit');
+  if (ed) ed.addEventListener('click', () => openRecordSheet(ds));
   const un = $('#ddUnrelapse');
   if (un) un.addEventListener('click', () => {
     state.relapses = state.relapses.filter(d => d !== ds);
     delete state.relapseNotes[ds];
     save(); updateDerived(); render();
     toast(t('dd.unrelapsed'));
+  });
+  const unex = $('#ddUnexception');
+  if (unex) unex.addEventListener('click', () => {
+    state.exceptions = state.exceptions.filter(d => d !== ds);
+    delete state.exceptionReasons[ds];
+    save(); updateDerived(); render();
+    toast(t('dd.unexceptioned'));
   });
   const re = $('#ddRelapse');
   if (re) re.addEventListener('click', () => addRelapse(ds, ''));
@@ -736,12 +772,15 @@ function openRelapseSheet() {
 
 function addRelapse(ds, note) {
   const undoState = { relapses: [...state.relapses], notes: { ...state.relapseNotes } };
+  /* 同じ日に「特別な日」が付いていたら、矛盾しないよう外しておく */
+  state.exceptions = state.exceptions.filter(d => d !== ds);
+  delete state.exceptionReasons[ds];
   if (!state.relapses.includes(ds)) state.relapses.push(ds);
   if (note) state.relapseNotes[ds] = note;
   save(); updateDerived(); render();
   switchTab('home');
   buzz(15);
-  showRelapseConfirm(() => {
+  showUndoConfirm(t('relapse.toast'), t('relapse.undo'), () => {
     state.relapses = undoState.relapses;
     state.relapseNotes = undoState.notes;
     save(); updateDerived(); render();
@@ -749,23 +788,54 @@ function addRelapse(ds, note) {
   });
 }
 
-let relapseConfirmTimer = null;
-function showRelapseConfirm(onUndo) {
+let undoConfirmTimer = null;
+function showUndoConfirm(msg, undoLabel, onUndo) {
   const ov = $('#relapseConfirm');
-  $('#rcMsg').textContent = t('relapse.toast');
-  $('#rcUndo').textContent = t('relapse.undo');
+  $('#rcMsg').textContent = msg;
+  $('#rcUndo').textContent = undoLabel;
   ov.classList.remove('hidden', 'closing');
   ov.setAttribute('aria-hidden', 'false');
   const close = () => {
     ov.classList.add('closing');
-    clearTimeout(relapseConfirmTimer);
+    clearTimeout(undoConfirmTimer);
     setTimeout(() => { ov.classList.add('hidden'); ov.setAttribute('aria-hidden', 'true'); }, 220);
   };
   $('#rcUndo').onclick = () => { close(); onUndo(); };
   $('#rcClose').onclick = close;
   ov.onclick = e => { if (e.target === ov) close(); };
-  clearTimeout(relapseConfirmTimer);
-  relapseConfirmTimer = setTimeout(close, 5000);
+  clearTimeout(undoConfirmTimer);
+  undoConfirmTimer = setTimeout(close, 5000);
+}
+
+/* ═══════════════ 特別な日シート ═══════════════ */
+let exceptionDayChoice = 'today';   // 'today' / 'past' / 'future'
+
+function openExceptionSheet() {
+  exceptionDayChoice = 'today';
+  $$('#exceptionDaySeg .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.day === 'today'));
+  $('#exceptionDateField').hidden = true;
+  $('#exceptionDate').value = '';
+  $$('#exceptionReasonChips .trigger').forEach(b => b.classList.remove('selected'));
+  $('#exceptionNote').value = '';
+  openSheet('#exceptionSheet');
+}
+
+function addException(ds, reason) {
+  const undoState = { exceptions: [...state.exceptions], reasons: { ...state.exceptionReasons } };
+  /* 同じ日に「失敗」が付いていたら、矛盾しないよう外しておく */
+  state.relapses = state.relapses.filter(d => d !== ds);
+  delete state.relapseNotes[ds];
+  if (!state.exceptions.includes(ds)) state.exceptions.push(ds);
+  state.exceptionReasons[ds] = reason;
+  save(); updateDerived(); render();
+  switchTab('home');
+  buzz(15);
+  showUndoConfirm(t('exception.toast'), t('exception.undo'), () => {
+    state.exceptions = undoState.exceptions;
+    state.exceptionReasons = undoState.reasons;
+    save(); updateDerived(); render();
+    toast(t('exception.undone'));
+  });
 }
 
 /* ═══════════════ SOS（深呼吸） ═══════════════ */
@@ -1120,7 +1190,7 @@ function switchTab(name) {
 }
 
 /* シートは開くと履歴を1つ積む → スマホの「戻る」で閉じられる */
-const SHEET_SELS = ['#recordSheet', '#relapseSheet', '#settingsSheet', '#liverInfoSheet'];
+const SHEET_SELS = ['#recordSheet', '#relapseSheet', '#exceptionSheet', '#settingsSheet', '#liverInfoSheet'];
 let lastFocus = null;
 
 function openSheet(sel) {
@@ -1293,6 +1363,7 @@ function init() {
   /* ホーム */
   $('#recordTodayBtn').addEventListener('click', () => openRecordSheet(todayStr()));
   $('#relapseBtn').addEventListener('click', openRelapseSheet);
+  $('#exceptionBtn').addEventListener('click', openExceptionSheet);
   $('#adviceRefresh').addEventListener('click', () => {
     const btn = $('#adviceRefresh');
     btn.classList.remove('spin'); void btn.offsetWidth; btn.classList.add('spin');
@@ -1356,6 +1427,43 @@ function init() {
     addRelapse(ds, $('#relapseNote').value.trim());
   });
   $('#closeRelapse').addEventListener('click', () => closeSheet('#relapseSheet'));
+
+  /* 特別な日シート */
+  $$('#exceptionDaySeg .seg-btn').forEach(b => b.addEventListener('click', () => {
+    exceptionDayChoice = b.dataset.day;
+    $$('#exceptionDaySeg .seg-btn').forEach(x => x.classList.toggle('active', x === b));
+    const needsDate = exceptionDayChoice !== 'today';
+    $('#exceptionDateField').hidden = !needsDate;
+    if (needsDate) {
+      const inp = $('#exceptionDate');
+      inp.min = exceptionDayChoice === 'future' ? addDays(todayStr(), 1) : '';
+      inp.max = exceptionDayChoice === 'past' ? addDays(todayStr(), -1) : '';
+      inp.value = exceptionDayChoice === 'future' ? addDays(todayStr(), 1) : addDays(todayStr(), -1);
+      /* タップした流れでそのまま日付ピッカーを開く（対応ブラウザのみ） */
+      try { inp.showPicker(); } catch (e) { inp.focus(); }
+    }
+  }));
+  $$('#exceptionReasonChips .trigger').forEach(b => b.addEventListener('click', () => {
+    $$('#exceptionReasonChips .trigger').forEach(x => x.classList.remove('selected'));
+    b.classList.add('selected');
+    $('#exceptionNote').value = t('exreasonName.' + b.dataset.reason);
+  }));
+  $('#saveExceptionBtn').addEventListener('click', () => {
+    let ds;
+    if (exceptionDayChoice === 'today') {
+      ds = todayStr();
+    } else {
+      ds = $('#exceptionDate').value;
+      if (!ds) { toast(t('exception.pickDate')); return; }
+      if (exceptionDayChoice === 'past' && parseDate(ds) > new Date()) { toast(t('set.futureDate')); return; }
+      if (exceptionDayChoice === 'future' && parseDate(ds) <= new Date()) { toast(t('exception.pickFuture')); return; }
+    }
+    const note = $('#exceptionNote').value.trim();
+    if (!note) { toast(t('exception.needReason')); return; }
+    closeSheet('#exceptionSheet');
+    addException(ds, note);
+  });
+  $('#closeException').addEventListener('click', () => closeSheet('#exceptionSheet'));
 
   /* 肝臓イラストの注意書き */
   const openLiverInfo = () => {
