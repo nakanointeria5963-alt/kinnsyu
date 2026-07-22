@@ -660,6 +660,7 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
 .data-actions { display: flex; gap: 10px; margin-bottom: 10px; }
 .data-actions .btn { flex: 1; font-size: .84rem; padding: 11px 8px; text-align: center; }
 .file-btn { display: flex; align-items: center; justify-content: center; }
+.link-btn { display: flex; align-items: center; justify-content: center; text-decoration: none; margin-bottom: 10px; }
 
 /* ═══════════════ オンボーディング ═══════════════ */
 .ob-box {
