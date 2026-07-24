@@ -223,6 +223,7 @@ main { padding: 4px 16px 8px; }
 .ws-day:active { transform: scale(.93); }
 .ws-day:hover { background: rgba(255, 255, 255, .18); }
 .ws-day .ws-dow { font-size: .62rem; opacity: .75; }
+.ws-day .ws-date { font-size: .68rem; font-weight: 600; opacity: .92; }
 .ws-day .ws-icon { font-size: 1.02rem; line-height: 1.25; }
 .ws-day.faint .ws-icon { opacity: .45; }
 .ws-day.today { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .75); background: rgba(255, 255, 255, .18); }

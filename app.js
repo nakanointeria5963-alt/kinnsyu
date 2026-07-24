@@ -314,7 +314,7 @@ function renderWeekStrip() {
     const cls = 'ws-day' + (ds === today ? ' today' : '') + (relapse ? ' relapse' : '') + (exception ? ' exception' : '') +
       (!log && !relapse && !exception ? ' faint' : '');
     html += `<button class="${cls}" data-date="${ds}" aria-label="${escapeHtml(t('ws.dayAria', { d: fmtDate(ds) }))}">
-      <span class="ws-dow">${dows[parseDate(ds).getDay()]}</span><span class="ws-icon">${icon}</span></button>`;
+      <span class="ws-dow">${dows[parseDate(ds).getDay()]}</span><span class="ws-date">${parseDate(ds).getDate()}</span><span class="ws-icon">${icon}</span></button>`;
   }
   el.innerHTML = html;
   $$('#weekStrip .ws-day').forEach(b =>
