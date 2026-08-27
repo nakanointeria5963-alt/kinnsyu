@@ -152,10 +152,10 @@ function drawFortune(birthDate, dateStr, lang = 'ja') {
   const item = LUCKY_ITEMS[L][Math.floor(rand() * LUCKY_ITEMS.ja.length)];
   const luckyNumber = Math.floor(rand() * 9) + 1;
 
-  /* 運勢ランク。ごくまれ（約3%）に「大吉」の日があり、特別演出の対象になる */
+  /* 運勢ランク。まれ（約7%）に「大吉」の日があり、特別演出の対象になる */
   const roll = rand();
   let stars, jackpot = false;
-  if (roll < 0.03) { stars = 5; jackpot = true; reversed = false; }
+  if (roll < 0.07) { stars = 5; jackpot = true; reversed = false; }
   else if (roll < 0.18) stars = 5;
   else if (roll < 0.55) stars = 4;
   else stars = 3;

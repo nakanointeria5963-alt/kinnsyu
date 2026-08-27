@@ -429,7 +429,7 @@ function check(name, cond) {
   });
   check('タロット: 小アルカナが引かれる', variety.minor > 100, `minor=${variety.minor}`);
   check('タロット: 大アルカナも引かれる', variety.major > 40, `major=${variety.major}`);
-  check('タロット: 大吉はレア(400日中1〜40回)', variety.jack >= 1 && variety.jack <= 40, `jack=${variety.jack}`);
+  check('タロット: 大吉はレア(400日中1〜70回)', variety.jack >= 1 && variety.jack <= 70, `jack=${variety.jack}`);
   check('タロット: デッキは78枚', (await page.evaluate(() => Tarot.DECK_SIZE)) === 78);
 
   // 今日が大吉になる誕生日を探して、めくり→演出→閉じるまで検証
