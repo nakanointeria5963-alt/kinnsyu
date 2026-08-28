@@ -4,7 +4,8 @@
     "files    : 本家からそのまま配るファイル。中身が完全に共通か、replaceで吸収できる差分しかないもの。",
     "           app.js / i18n.js / index.html / styles.css / advisor.js / アイコン類はアプリ固有なので対象外。",
     "targets  : 配布先。dir は本家からの相対パス。replace は [置換前, 置換後] を上から順に適用する。",
-    "           置換は配るファイルにだけ効くので、アプリ固有ファイルが書き換わることはない。"
+    "           置換は配るファイルにだけ効くので、アプリ固有ファイルが書き換わることはない。",
+    "exclude : その配布先だけが持たないファイル。指定すると配布・検査ともに対象外になる。"
   ],
   "files": [
     "package.json",
@@ -26,24 +27,96 @@
       "name": "sesshu",
       "dir": "../sesshu",
       "replace": [
-        ["禁酒トラッカー", "節酒サポート"],
-        ["禁酒アプリ", "節酒アプリ"],
-        ["Sober Tracker", "Moderation Support"],
-        ["禁酒の継続をサポートする", "節酒(お酒を減らす)の目標達成をサポートする"],
-        ["kinshu-", "sesshu-"],
-        ["kinnsyu", "sesshu"]
+        [
+          "禁酒トラッカー",
+          "節酒サポート"
+        ],
+        [
+          "禁酒アプリ",
+          "節酒アプリ"
+        ],
+        [
+          "Sober Tracker",
+          "Moderation Support"
+        ],
+        [
+          "禁酒の継続をサポートする",
+          "節酒(お酒を減らす)の目標達成をサポートする"
+        ],
+        [
+          "kinshu-",
+          "sesshu-"
+        ],
+        [
+          "kinnsyu",
+          "sesshu"
+        ]
       ]
     },
     {
       "name": "kinnenn",
       "dir": "../kinnenn",
       "replace": [
-        ["禁酒トラッカー", "禁煙トラッカー"],
-        ["禁酒アプリ", "禁煙アプリ"],
-        ["Sober Tracker", "Smoke-Free Tracker"],
-        ["禁酒の継続をサポートする", "禁煙の継続をサポートする"],
-        ["kinshu-", "kinen-"],
-        ["kinnsyu", "kinnenn"]
+        [
+          "禁酒トラッカー",
+          "禁煙トラッカー"
+        ],
+        [
+          "禁酒アプリ",
+          "禁煙アプリ"
+        ],
+        [
+          "Sober Tracker",
+          "Smoke-Free Tracker"
+        ],
+        [
+          "禁酒の継続をサポートする",
+          "禁煙の継続をサポートする"
+        ],
+        [
+          "kinshu-",
+          "kinen-"
+        ],
+        [
+          "kinnsyu",
+          "kinnenn"
+        ]
+      ]
+    },
+    {
+      "name": "dangyanburu",
+      "dir": "../dangyanburu",
+      "exclude": [
+        "tarot.js",
+        "tarot-icons.js",
+        "sw.js",
+        "tools/stamp-sw.cjs"
+      ],
+      "replace": [
+        [
+          "禁酒トラッカー",
+          "ギャンブル断ちトラッカー"
+        ],
+        [
+          "禁酒アプリ",
+          "ギャンブル断ちアプリ"
+        ],
+        [
+          "Sober Tracker",
+          "Gamble-Free Tracker"
+        ],
+        [
+          "禁酒の継続をサポートする",
+          "ギャンブルをやめる毎日をサポートする"
+        ],
+        [
+          "kinshu-",
+          "dangamble-"
+        ],
+        [
+          "kinnsyu",
+          "dangyanburu"
+        ]
       ]
     }
   ]

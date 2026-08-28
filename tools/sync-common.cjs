@@ -48,7 +48,12 @@ for (const target of cfg.targets) {
   console.log(`\n── ${target.name} (${target.dir})`);
   let changedHere = 0;
 
+  /* 配布先によっては持たないファイルがある（例: ギャンブル断ちアプリは
+     変動報酬の仕組みを避けるためタロットを持たない）。exclude で外す。 */
+  const exclude = new Set(target.exclude || []);
+
   for (const rel of cfg.files) {
+    if (exclude.has(rel)) continue;
     const src = path.join(ROOT, rel);
     if (!fs.existsSync(src)) {
       console.error(`  ! 本家に無いファイル: ${rel}`);
