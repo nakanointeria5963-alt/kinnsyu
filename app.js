@@ -400,16 +400,19 @@ function renderAdvice(force) {
   const today = todayStr();
   const age = Advisor.ageFrom(state.birthDate);
 
+  const days = currentDays();
   const lang = I18N.lang();
+  /* 日数もキーに含める。含めないと、初回起動時（0日）に作られた文面が
+     オンボーディングで開始日を過去にしたあともその日いっぱい残ってしまう。 */
   if (!force && state.advice && state.advice.date === today && state.advice.lang === lang &&
-      state.advice.age === (age == null ? null : age) && state.advice.text) {
+      state.advice.age === (age == null ? null : age) && state.advice.days === days && state.advice.text) {
     el.textContent = state.advice.text;
     return;
   }
   const salt = (force && state.advice && state.advice.date === today) ? (state.advice.salt || 0) + 1 : 0;
   if (!state.adviceHistory) state.adviceHistory = {};
-  const { text } = Advisor.generate({ days: currentDays(), age, date: today, salt, history: state.adviceHistory, lang });
-  state.advice = { date: today, salt, age: (age == null ? null : age), text, lang };
+  const { text } = Advisor.generate({ days, age, date: today, salt, history: state.adviceHistory, lang });
+  state.advice = { date: today, salt, age: (age == null ? null : age), days, text, lang };
   save();
   el.textContent = text;
 }
@@ -862,6 +865,7 @@ function openSos() {
   $('#sosStart').textContent = t('sos.start');
   $('#sosStart').hidden = false;
   $('#breathCircle').className = 'breath-circle';
+  hideBackupNudge();
   const ov = $('#sosOverlay');
   if (ov.classList.contains('hidden')) {
     ov.classList.remove('hidden');
@@ -1049,7 +1053,16 @@ function maybeNudgeBackup() {
   setTimeout(showBackupNudge, 3000);
 }
 
+/* シートや全画面表示が開いていないか。開いている間にバックアップ誘導カードを
+   出すと、その下のボタンを押せなくしてしまうため。 */
+function anyPanelOpen() {
+  const open = sel => { const el = $(sel); return el && !el.classList.contains('hidden'); };
+  return SHEET_SELS.some(open) || open('#sosOverlay') || open('#onboarding');
+}
 function showBackupNudge() {
+  /* 表示は読み込みから少し遅れて起きるため、その間に何かが開かれていることがある。
+     開いている間は出さずに待ち、閉じられてから改めて出す。 */
+  if (anyPanelOpen()) { setTimeout(showBackupNudge, 2000); return; }
   $('#backupNudge').classList.remove('hidden');
 }
 function hideBackupNudge() {
@@ -1208,6 +1221,9 @@ let lastFocus = null;
 function openSheet(sel) {
   const el = $(sel);
   if (!el.classList.contains('hidden')) return;
+  /* バックアップ誘導カードはシートより手前に浮くため、
+     開いたシートのボタンを覆ってしまわないよう必ず引っ込める。 */
+  hideBackupNudge();
   lastFocus = document.activeElement;
   el.classList.remove('hidden');
   try { history.pushState({ sheet: sel }, ''); } catch (e) {}

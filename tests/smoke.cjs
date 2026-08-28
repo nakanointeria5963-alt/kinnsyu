@@ -47,6 +47,12 @@ function check(name, cond) {
   check('あいさつ表示', ((await page.textContent('#greeting')) || '').length > 3);
   check('週間ストリップ7日分', (await page.$$('#weekStrip .ws-day')).length === 7);
 
+  // ── 1b. アドバイスが「0日目」の文面のまま固定されない ──
+  // 初回起動時(まだ0日)に作られた文面がキャッシュに残ると、オンボーディングで
+  // 開始日を10日前にしても、その日いっぱい「スタート」のままになっていた
+  check('アドバイスが0日目の文面のまま残らない',
+    /10 日目/.test(await page.textContent('#adviceBody')));
+
   // ── 2. 今日を記録（気分必須） ──
   await page.click('#recordTodayBtn');
   await page.click('#saveLogBtn'); // 気分未選択 → エラートースト
@@ -557,6 +563,33 @@ function check(name, cond) {
   await page.setInputFiles('#importFile', fixture);
   await page.waitForTimeout(600);
   check('読み込みOK→データが置き換わる', (await page.evaluate(() => JSON.parse(localStorage.getItem('kinshu_v1')).startDate)) === fixDate);
+
+  // ── 14b. バックアップ促しカードが、開いている画面の上に重ならない ──
+  // 促しは起動3秒後に出るため、その時点で開いていたシートのボタンを
+  // 覆って押せなくしてしまっていた
+  await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('kinshu_v1'));
+    s.lastBackupAt = ''; s.backupNudgedAt = ''; s.backupNudgeMuted = false;
+    localStorage.setItem('kinshu_v1', JSON.stringify(s));
+  });
+  await page.reload();
+  await page.waitForTimeout(600);
+  await page.click('#settingsBtn');            // 促しが出る前にシートを開く
+  await page.waitForTimeout(3800);
+  check('シートを開いている間は促しカードを出さない',
+    await page.$eval('#backupNudge', el => el.classList.contains('hidden')));
+  check('シートのボタンが促しカードに覆われず押せる',
+    await page.$eval('#closeSettings', el => {
+      const r = el.getBoundingClientRect();
+      const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return el.contains(top) || el === top;
+    }));
+  await page.click('#closeSettings');
+  await page.waitForTimeout(2400);
+  check('シートを閉じたあとに促しカードが出る',
+    !(await page.$eval('#backupNudge', el => el.classList.contains('hidden'))));
+  await page.click('#backupNudgeLater');
+  await page.waitForTimeout(200);
 
   // ── 15. バックアップ促し（30日以上未保存なら月1回、専用カードで表示） ──
   await page.evaluate(() => {
