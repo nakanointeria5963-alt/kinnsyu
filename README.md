@@ -99,6 +99,35 @@ GitHub Actions（`.github/workflows/test.yml`）で push のたびに同じテ�
 | `sw.js` | Service Worker（HTMLはネットワーク優先で更新が確実に届く） |
 | `tests/smoke.cjs` | E2Eスモークテスト |
 
+## 姉妹アプリへの共通ファイル配布
+
+このリポジトリは、同じ土台から作られた姉妹アプリの「本家」です。
+
+| アプリ | リポジトリ | 内容 |
+|---|---|---|
+| 禁酒トラッカー | `kinnsyu`（本家） | 完全にやめる |
+| 禁煙トラッカー | `kinnenn` | 完全にやめる |
+| 節酒サポート | `sesshu` | 上限を決めて減らす |
+
+タロットや共有ユーティリティなど**3アプリで中身が同じファイル**は、本家で直して
+配るだけで揃います。同じ修正を手で3回繰り返さないための仕組みです。
+
+```bash
+# 姉妹アプリを本家と同じ階層にクローンしておく
+#   親フォルダ/kinnsyu, 親フォルダ/sesshu, 親フォルダ/kinnenn
+
+node tools/sync-common.cjs           # 配る
+node tools/sync-common.cjs --check   # ズレがないか見るだけ（書き込まない）
+node tools/sync-common.cjs --only sesshu   # 配布先を1つに絞る
+```
+
+配布後は各アプリでテスト（`npm test`）を実行してからコミットしてください。
+`sw.js` を配ったときはキャッシュ名が自動で振り直されます。
+
+**配るファイル・置き換える単語は `tools/sync-config.json` で定義します。**
+`app.js` / `i18n.js` / `index.html` / `styles.css` / `advisor.js` / アイコン類は
+アプリごとに中身が違うため配布対象外で、これらは従来どおり手で対応します。
+
 ## プライバシー
 
 データは外部に送信されません。すべて利用中の端末内にのみ保存されます。
