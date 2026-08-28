@@ -176,6 +176,15 @@ const BADGES = [
   { days: 14,  emoji: '💪' }, { days: 30,  emoji: '🏅' }, { days: 60,  emoji: '🎖️' },
   { days: 90,  emoji: '🏆' }, { days: 180, emoji: '💎' }, { days: 365, emoji: '👑' },
 ];
+/* 設定値の丸め込み。HTMLのmax属性はスピナーにしか効かず、キーボード入力や
+   貼り付けでは素通りするため、保存時にここで必ず上限・下限に収める。
+   round=false は「1本あたり◯円」のように小数を許したい項目用。 */
+function clampNum(v, lo, hi, round = true) {
+  const n = Number(v);
+  if (!isFinite(n)) return lo;
+  return Math.min(hi, Math.max(lo, round ? Math.round(n) : n));
+}
+
 const badgeTitle = b => t('badge.d' + b.days);
 
 /* ═══════════════ 通貨 ═══════════════ */
@@ -946,12 +955,12 @@ async function saveSettings() {
   if (sd && parseDate(sd) > new Date()) { toast(t('set.futureDate')); return; }
   state.startDate = sd || state.startDate;
   state.currency = $('#currency').value;
-  state.goalDays = Math.max(1, Math.round(Number($('#goalDays').value) || 30));
-  state.drinksPerDay = Math.max(0, Number($('#drinksPerDay').value) || 0);
-  state.pricePerDrink = Math.max(0, Number($('#pricePerDrink').value) || 0);
-  state.calPerDrink = Math.max(0, Number($('#calPerDrink').value) || 0);
+  state.goalDays = clampNum(Number($('#goalDays').value) || 30, 1, 3650);
+  state.drinksPerDay = clampNum(Number($('#drinksPerDay').value) || 0, 0, 99, false);
+  state.pricePerDrink = clampNum(Number($('#pricePerDrink').value) || 0, 0, 1000000, false);
+  state.calPerDrink = clampNum(Number($('#calPerDrink').value) || 0, 0, 10000, false);
   state.rewardName = $('#rewardName').value.trim();
-  state.rewardPrice = Math.max(0, Math.round(Number($('#rewardPrice').value) || 0));
+  state.rewardPrice = clampNum(Number($('#rewardPrice').value) || 0, 0, 100000000);
   state.nickname = $('#nickname').value.trim().slice(0, 12);
   const newBirth = $('#birthDate').value || '';
   if (newBirth !== state.birthDate) state.advice = null;
@@ -1141,11 +1150,14 @@ function showOnboarding() {
     b.addEventListener('click', () => b.classList.toggle('selected')));
   $('#obFinish').addEventListener('click', () => {
     const sd = $('#obStartDate').value;
-    if (sd && parseDate(sd) <= new Date()) state.startDate = sd;
+    /* 未来の日付は他の画面と同じく理由を伝えて弾く。
+       黙って今日に置き換えると、入力が消えたことに気づけないため。 */
+    if (sd && parseDate(sd) > new Date()) { toast(t('set.futureDate')); return; }
+    if (sd) state.startDate = sd;
     state.reasons = $$('#reasonChips .trigger.selected').map(b => b.dataset.reason);
-    state.drinksPerDay = Math.max(0, Number($('#obDrinks').value) || 3);
-    state.pricePerDrink = Math.max(0, Number($('#obPrice').value) || (I18N.lang() === 'ja' ? 500 : 8));
-    state.goalDays = Math.max(1, Math.round(Number($('#obGoal').value) || 30));
+    state.drinksPerDay = clampNum(Number($('#obDrinks').value) || 3, 0, 99, false);
+    state.pricePerDrink = clampNum(Number($('#obPrice').value) || (I18N.lang() === 'ja' ? 500 : 8), 0, 1000000, false);
+    state.goalDays = clampNum(Number($('#obGoal').value) || 30, 1, 3650);
     state.birthDate = $('#obBirth').value || '';
     state.onboarded = true;
     save();
@@ -1558,7 +1570,28 @@ function init() {
 
   scheduleReminder();
   updatePeriodicSync();
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleReminder(); });
+  /* 日付またぎ対応。アプリを開いたまま日付が変わっても継続日数が止まらないよう、
+     1分ごとと「画面に戻ったとき」に日付を見張り、変わっていたら数え直す。
+     スマホのホーム画面から使うと何日も起動しっぱなしになるため必須。 */
+  let shownDate = todayStr();
+  const checkDateRollover = () => {
+    const now = todayStr();
+    if (now === shownDate) return;
+    shownDate = now;
+    const newly = updateDerived();
+    render();
+    if (newly.length) {
+      celebrate();
+      toast(t('badge.toast', { emoji: newly[0].emoji, title: badgeTitle(newly[0]) }));
+    }
+  };
+  setInterval(checkDateRollover, 60000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return;
+    scheduleReminder();
+    checkDateRollover();
+  });
+  window.addEventListener('focus', checkDateRollover);
   window.addEventListener('resize', () => { if ($('#stats').classList.contains('active')) renderCharts(); });
 
   /* Service Worker 登録＋更新通知

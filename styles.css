@@ -126,7 +126,7 @@ button { font-family: inherit; color: inherit; }
 .app-header h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: .01em; }
 .icon-btn {
   background: none; border: none; cursor: pointer; font-size: 1.25rem;
-  padding: var(--sp-2); border-radius: var(--radius-md); line-height: 1; min-width: 42px; min-height: 42px;
+  padding: var(--sp-2); border-radius: var(--radius-md); line-height: 1; min-width: 44px; min-height: 44px;
   display: inline-flex; align-items: center; justify-content: center;
 }
 .icon-btn:hover { background: var(--border); }
@@ -265,7 +265,10 @@ main { padding: 4px 16px 8px; }
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
 .stat { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 16px 10px; margin-bottom: 0; }
 .stat-emoji { display: block; width: 26px; height: 26px; color: var(--primary); }
-.stat-num { font-size: 1.3rem; font-weight: 800; }
+/* min-width:0 が無いとグリッド要素は中身より小さくなれず、桁の多い金額で
+   カードごと画面からはみ出す（横スクロールの原因になる）。 */
+.stat { min-width: 0; }
+.stat-num { font-size: 1.3rem; font-weight: 800; max-width: 100%; overflow-wrap: anywhere; }
 .stat-cap { font-size: .74rem; color: var(--muted); }
 
 /* ═══════════════ AIアドバイス ═══════════════ */
