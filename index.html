@@ -430,10 +430,11 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
     <label class="field"><span data-i18n="set.birth">生年月日（占い・アドバイスに使用）</span><input type="date" id="birthDate" /></label>
     <label class="field"><span data-i18n="set.reasons">禁酒する理由（1行に1つ・SOS時に表示されます）</span><textarea id="reasonsInput" data-i18n-ph="set.reasonsPh" placeholder="例: 家族との時間を大切にしたい&#10;例: 朝スッキリ起きたい"></textarea></label>
 
-    <p class="sec-title" data-i18n="set.notif">通知</p>
-    <label class="field toggle-field"><span data-i18n="set.reminderOn">毎日のリマインダー通知</span><input type="checkbox" id="reminderOn" /></label>
-    <label class="field" id="reminderTimeField"><span data-i18n="set.reminderTime">通知する時刻</span><input type="time" id="reminderTime" value="21:00" /></label>
-    <p class="hint" id="reminderHint"></p>
+    <p class="sec-title" data-i18n="set.remind">毎日の声かけ</p>
+    <p class="hint" data-i18n="set.remindHint"></p>
+    <label class="field"><span data-i18n="set.remindTime">思い出したい時刻</span><input type="time" id="reminderTime" value="21:00" /></label>
+    <button id="addCalendar" class="btn" data-i18n="set.remindAdd">📅 スマホのカレンダーに登録</button>
+    <p class="hint" data-i18n="set.remindHow"></p>
 
     <p class="sec-title" data-i18n="set.data">データ</p>
     <div class="data-actions">
