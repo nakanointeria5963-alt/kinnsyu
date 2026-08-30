@@ -431,10 +431,14 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
     <label class="field"><span data-i18n="set.reasons">禁酒する理由（1行に1つ・SOS時に表示されます）</span><textarea id="reasonsInput" data-i18n-ph="set.reasonsPh" placeholder="例: 家族との時間を大切にしたい&#10;例: 朝スッキリ起きたい"></textarea></label>
 
     <p class="sec-title" data-i18n="set.remind">毎日の声かけ</p>
-    <p class="hint" data-i18n="set.remindHint"></p>
-    <label class="field"><span data-i18n="set.remindTime">思い出したい時刻</span><input type="time" id="reminderTime" value="21:00" /></label>
-    <button id="addCalendar" class="btn" data-i18n="set.remindAdd">📅 スマホのカレンダーに登録</button>
-    <p class="hint" data-i18n="set.remindHow"></p>
+    <div class="remind-box">
+      <p class="remind-lead" data-i18n="set.remindHint"></p>
+      <label class="field"><span data-i18n="set.remindTime">時刻</span><input type="time" id="reminderTime" value="21:00" /></label>
+      <button id="addCalendar" class="btn btn-primary remind-add" data-i18n="set.remindAdd">📅 カレンダーに登録する</button>
+      <p class="remind-after" id="calAfter" hidden></p>
+      <button id="calGoogle" class="btn-quiet remind-alt" data-i18n="ics.google">Googleカレンダーで開く</button>
+      <p class="hint remind-note" data-i18n="set.remindHow"></p>
+    </div>
 
     <p class="sec-title" data-i18n="set.data">データ</p>
     <div class="data-actions">
