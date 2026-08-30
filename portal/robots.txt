@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nakanointeria5963-alt.github.io/sitemap.xml

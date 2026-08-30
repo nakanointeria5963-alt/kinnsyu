@@ -1,0 +1,285 @@
+/* ポータル（4つのアプリの入口）のスタイル。
+   アプリ本体とは別サイトなので、色だけ合わせて中身は独立させている。
+   ライト／ダークは OS の設定に自動で追従する。 */
+
+:root {
+  --bg: #f2f6f6;
+  --card: #ffffff;
+  --text: #10221f;
+  --muted: #4f6360;
+  --primary: #0d9488;
+  --primary-dark: #0f766e;
+  --danger: #e11d48;
+  --border: #e3ebea;
+  --shadow: 0 1px 2px rgba(16, 34, 31, 0.05), 0 4px 16px rgba(16, 34, 31, 0.06);
+  --radius: 18px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1716;
+    --card: #16211f;
+    --text: #e8f0ee;
+    --muted: #9db3af;
+    --primary: #2dd4bf;
+    --primary-dark: #5eead4;
+    --danger: #fb7185;
+    --border: #24322f;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.3);
+    color-scheme: dark;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', 'Segoe UI', sans-serif;
+  line-height: 1.75;
+  -webkit-text-size-adjust: 100%;
+}
+
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 20px 64px;
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+}
+.skip:focus {
+  left: 8px;
+  top: 8px;
+  z-index: 10;
+  background: var(--card);
+  padding: 8px 14px;
+  border-radius: 8px;
+}
+
+/* ── 見出し ── */
+header {
+  padding: 56px 0 8px;
+  text-align: center;
+}
+h1 {
+  font-size: 1.6rem;
+  line-height: 1.5;
+  margin: 0 0 12px;
+  letter-spacing: 0.01em;
+}
+.lead {
+  color: var(--muted);
+  font-size: 0.97rem;
+  margin: 0 auto;
+  max-width: 30em;
+}
+
+/* ── 特徴のバッジ ── */
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 22px 0 4px;
+  padding: 0;
+  list-style: none;
+}
+.badges li {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  border-radius: 99px;
+  padding: 5px 13px;
+}
+
+/* ── アプリのカード ── */
+h2 {
+  font-size: 1.12rem;
+  margin: 44px 0 6px;
+}
+.sec-lead {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0 0 16px;
+}
+
+.apps {
+  display: grid;
+  gap: 12px;
+}
+.app {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 17px;
+  text-decoration: none;
+  color: inherit;
+}
+.app:hover,
+.app:focus-visible {
+  border-color: var(--primary);
+}
+.app:active {
+  transform: scale(0.995);
+}
+.app img {
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
+  flex: none;
+}
+.app-name {
+  font-weight: 700;
+  font-size: 1.02rem;
+  margin-bottom: 2px;
+}
+.app-for {
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin-bottom: 5px;
+}
+.app-body {
+  font-size: 0.86rem;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+/* ── 迷ったとき ── */
+.pick {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 18px 14px;
+  margin-top: 14px;
+}
+.pick dt {
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-top: 14px;
+}
+.pick dd {
+  margin: 3px 0 0;
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+/* ── 手順 ── */
+.steps {
+  padding-left: 1.3em;
+  font-size: 0.9rem;
+}
+.steps li {
+  margin-bottom: 7px;
+}
+.steps b {
+  color: var(--text);
+}
+
+/* ── 相談窓口（危機時） ── */
+.urgent {
+  background: color-mix(in srgb, var(--danger) 9%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--border));
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-top: 14px;
+}
+.urgent p {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+}
+.tel {
+  display: block;
+  text-align: center;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 12px;
+  padding: 13px;
+}
+.tel:active {
+  opacity: 0.85;
+}
+.urgent small {
+  display: block;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.79rem;
+  line-height: 1.65;
+}
+
+/* ── 注意書き ── */
+.note {
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 15px 18px;
+}
+.note p {
+  margin: 0 0 10px;
+}
+.note p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── 本文ページ（プライバシー・利用規約） ── */
+.doc h2 {
+  font-size: 1.05rem;
+  margin: 34px 0 8px;
+}
+.doc p,
+.doc li {
+  font-size: 0.92rem;
+}
+.doc ul {
+  padding-left: 1.3em;
+}
+.back {
+  display: inline-block;
+  margin-top: 36px;
+  color: var(--primary-dark);
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+/* ── フッター ── */
+footer {
+  margin-top: 52px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+footer a {
+  color: var(--primary-dark);
+  text-decoration: none;
+  margin: 0 9px;
+  white-space: nowrap;
+}
+footer .updated {
+  display: block;
+  margin-top: 12px;
+}
+
+a:focus-visible,
+.app:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
