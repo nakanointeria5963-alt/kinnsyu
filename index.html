@@ -160,6 +160,17 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
         <p class="advice-note" data-i18n="advice.note">ℹ️ ここでの内容は一般的な情報の紹介であり、診断や治療を行うものではありません。体調に不安があるときや強い症状があるときは、自己判断せず医療機関にご相談ください。</p>
       </div>
 
+      <div class="card help-card">
+        <div class="advice-head">
+          <span class="advice-avatar">☎️</span>
+          <div class="advice-titles">
+            <span class="advice-title" data-i18n="help.title">☎️ 相談できる窓口</span>
+            <span class="advice-sub" data-i18n="help.hint">ひとりで頑張らなくて大丈夫です</span>
+          </div>
+        </div>
+        <button id="openHelp" class="btn btn-sm help-open" data-i18n="help.open">窓口を見る</button>
+      </div>
+
       <div class="card fortune-card">
         <div class="fortune-head">
           <span class="fortune-title" data-i18n="fortune.title">🔮 今日のタロット</span>
@@ -475,6 +486,23 @@ try { var _s = JSON.parse(localStorage.getItem('kinshu_v1')); if (_s && _s.theme
     <p class="advice-note liver-info-body" data-i18n="liver.infoBody"></p>
     <div class="sheet-actions">
       <button id="closeLiverInfo" class="btn btn-primary" data-i18n="liver.infoClose">わかりました</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 相談窓口 ═══════════ -->
+<div id="helpSheet" class="sheet hidden" role="dialog" aria-modal="true" aria-label="相談できる窓口">
+  <div class="sheet-panel sheet-tall">
+    <div class="sheet-grip" aria-hidden="true"><i></i></div>
+    <h2 data-i18n="help.sheetTitle">相談できる窓口</h2>
+    <p class="help-urgent" data-i18n="help.urgent"></p>
+    <div id="helpUrgentTel" class="help-urgent-tel"></div>
+    <p class="help-med" data-i18n="help.med"></p>
+    <p class="advice-note" data-i18n="help.lead"></p>
+    <div class="help-list" id="helpList"></div>
+    <p class="advice-note" data-i18n="help.note"></p>
+    <div class="sheet-actions sticky-actions">
+      <button id="closeHelp" class="btn btn-primary" data-i18n="help.close">閉じる</button>
     </div>
   </div>
 </div>

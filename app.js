@@ -1258,7 +1258,54 @@ function switchTab(name) {
 }
 
 /* シートは開くと履歴を1つ積む → スマホの「戻る」で閉じられる */
-const SHEET_SELS = ['#recordSheet', '#relapseSheet', '#exceptionSheet', '#settingsSheet', '#liverInfoSheet'];
+/* ═══════════════ 相談窓口 ═══════════════
+   掲載しているのは日本国内の公的な窓口と、全国規模で活動している団体だけ。
+   電話番号・受付時間は 2026-08 に各窓口の情報を突き合わせて確認した。
+   24時間でない窓口には必ず受付時間を書く（掛けて出ない体験が一番こたえるため）。
+   外部リンクは rel="noreferrer" を付け、どのアプリから来たかも渡さない。 */
+const HELP_GROUPS = [
+  { id: 'al', items: ['a1', 'a2'] },
+  { id: 'self', items: ['b1', 'b2', 'b3'] },
+  { id: 'info', items: ['i1'] },
+  { id: 'mind', items: ['h1', 'h2'] },
+];
+/* 番号は tel: リンクにして、つらいときに番号を書き写さずそのまま掛けられるようにする。 */
+const HELP_TEL = {
+  b1: '03-3590-5377', b2: '03-3863-1600', b3: '045-642-8777',
+  h1: '0120-279-338', h2: '0570-064-556',
+};
+const HELP_LINKS = {
+  a1: [['https://www.zmhwc.jp/centerlist.html', 'help.lk.center']],
+  a2: [['https://www.ncasa-japan.jp/', 'help.lk.ncasa']],
+  b1: [['https://aajapan.org/', 'help.lk.aa']],
+  b2: [['https://www.dansyu-renmei.or.jp/soudan/index.html', 'help.lk.dansyu']],
+  b3: [['https://www.al-anon.or.jp/', 'help.lk.alanon']],
+  i1: [['https://kennet.mhlw.go.jp/information/information/alcohol', 'help.lk.info']],
+};
+function telLink(num, label) {
+  return `<a class="btn btn-sm help-tel" href="tel:${num.replace(/-/g, '')}">📞 ${escapeHtml(label)}</a>`;
+}
+function webLink(url, label) {
+  return `<a class="help-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)} ↗</a>`;
+}
+function helpItemHtml(k) {
+  const links = (HELP_LINKS[k] || []).map(([u, key]) => webLink(u, t(key))).join('');
+  return `<div class="help-item">
+      <div class="help-item-title">${escapeHtml(t('help.' + k + 't'))}</div>
+      <div class="help-item-body">${escapeHtml(t('help.' + k + 'b'))}</div>
+      ${HELP_TEL[k] ? telLink(HELP_TEL[k], HELP_TEL[k]) : ''}
+      ${links ? `<div class="help-links">${links}</div>` : ''}
+    </div>`;
+}
+function openHelpSheet() {
+  $('#helpList').innerHTML = HELP_GROUPS.map(g =>
+    `<p class="help-group">${escapeHtml(t('help.grp.' + g.id))}</p>` +
+    g.items.map(helpItemHtml).join('')).join('');
+  $('#helpUrgentTel').innerHTML = telLink('0120-279-338', t('help.urgentCall'));
+  openSheet('#helpSheet');
+}
+
+const SHEET_SELS = ['#helpSheet', '#recordSheet', '#relapseSheet', '#exceptionSheet', '#settingsSheet', '#liverInfoSheet'];
 let lastFocus = null;
 
 function openSheet(sel) {
@@ -1551,6 +1598,8 @@ function init() {
   $('#sosClose').addEventListener('click', () => closeSos());
 
   /* 設定 */
+  $('#openHelp').addEventListener('click', openHelpSheet);
+  $('#closeHelp').addEventListener('click', () => closeSheet('#helpSheet'));
   $('#settingsBtn').addEventListener('click', openSettings);
   $('#saveSettings').addEventListener('click', saveSettings);
   $('#closeSettings').addEventListener('click', () => closeSheet('#settingsSheet'));

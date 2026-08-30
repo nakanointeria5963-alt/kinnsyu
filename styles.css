@@ -733,6 +733,37 @@ button.cal-cell:hover { outline: 1.5px solid var(--primary); }
 .backup-nudge-icon { font-size: 1.3rem; flex: none; }
 .backup-nudge-msg { font-size: .88rem; line-height: 1.5; margin: 0; }
 .backup-nudge-actions { display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap; margin-top: 12px; }
+.btn-sm { padding: 9px 14px; font-size: .86rem; }
+.help-open { width: 100%; margin-top: 12px; }
+.help-list { display: flex; flex-direction: column; gap: 10px; margin: 14px 0 6px; }
+.help-group {
+  font-size: .82rem; font-weight: 700; color: var(--muted);
+  letter-spacing: .04em; margin: 16px 2px 2px;
+}
+.help-group:first-child { margin-top: 2px; }
+.help-links { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 9px; }
+.help-link { font-size: .82rem; font-weight: 600; color: var(--primary-dark); text-decoration: none; }
+.help-link:active { opacity: .6; }
+.help-item { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 13px 14px; }
+.help-item-title { font-weight: 700; font-size: .93rem; margin-bottom: 4px; }
+.help-item-body { font-size: .84rem; color: var(--muted); line-height: 1.65; overflow-wrap: anywhere; }
+.help-tel {
+  display: inline-block; margin-top: 10px; text-decoration: none;
+  background: var(--primary); border-color: var(--primary); color: #fff;
+}
+.help-urgent-tel { margin: -4px 0 14px; }
+.help-urgent-tel .help-tel { margin-top: 0; width: 100%; text-align: center; }
+.help-urgent {
+  font-size: .86rem; line-height: 1.7; border-radius: var(--radius-md); padding: 12px 14px;
+  background: color-mix(in srgb, var(--danger) 9%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--border));
+}
+.help-med {
+  font-size: .85rem; line-height: 1.7; border-radius: var(--radius-md); padding: 12px 14px;
+  margin: 0 0 4px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+}
 .backup-nudge-actions .btn-sm { padding: 9px 16px; font-size: .85rem; border-radius: 11px; }
 .backup-nudge-quiet { margin: 0; padding: 6px 2px; }
 
